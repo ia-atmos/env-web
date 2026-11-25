@@ -15,5 +15,7 @@ Items put to the author are local to this session (`#1`, `#2`, ...;
 
 - [x] Rocks built with emcc, run headless in Chromium (`261125-rocks-emscripten.md`): works, unchanged.
 - [ ] Audio in a real browser; the test mode of env-sdl under node or Chromium.
+- [x] The old plans of the DOM found and summarized (`261125-dom.md`).
+- [x] Prototype of the DOM, branch `proto-dom`: an environment with no step, driven by the page; works in Chromium, no change to lang.
 - [ ] Report what works; then the questions of the material, section 3
       (scope, loop, building, assets, DOM, tests, editor), one at a time.
