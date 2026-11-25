@@ -1,0 +1,80 @@
+;; web.atm: a minimal environment of the browser (prototype).
+;;
+;; The browser drives the program: the environment has no `step`, so
+;; the generic `main` returns after the main chunk, and the page calls
+;; back into the program:
+;;   - `web_time(ms)`: the time elapsed, from `requestAnimationFrame`;
+;;   - `web_event(tag, id)`: an event of an element, as `:<tag> [id=...]`.
+;;
+;; Functions:
+;;   web.text(id, s)    sets the text of the element `id`
+;;   web.on(id, tag)    forwards the event `tag` of the element `id`
+
+```:prelude
+#include <stdio.h>
+#include <emscripten.h>
+
+EM_JS(void, web_js_text, (const char* id, const char* s), {
+    const e = document.getElementById(UTF8ToString(id));
+    if (e) e.textContent = UTF8ToString(s);
+});
+
+EM_JS(void, web_js_on, (const char* id, const char* tag), {
+    const i = UTF8ToString(id), t = UTF8ToString(tag);
+    const e = document.getElementById(i);
+    if (e) e.addEventListener(t, () => Module.webEvent(t, i));
+});
+
+// 0: alive, 1: the program ended, 2: an error (dumped)
+static int web_status (AStatus st) {
+    if (st != A_OK) {
+        if (st == A_ESCAPE) {
+            st = a_escape_err();
+        }
+        a_error_dump();
+        fflush(stdout);
+        return 2;
+    }
+    fflush(stdout);
+    return atm_alive() ? 0 : 1;
+}
+
+EMSCRIPTEN_KEEPALIVE int web_time (double ms) {
+    if (!atm_alive()) {
+        return 1;
+    }
+    int64_t n = (int64_t)(ms * 1000 / A_CLOCK_US);
+    return web_status((n > 0) ? atm_emit(a_int((AInt)n)) : A_OK);
+}
+
+EMSCRIPTEN_KEEPALIVE int web_event (const char* tag, const char* id) {
+    if (!atm_alive()) {
+        return 1;
+    }
+    AVal evt = a_tab();
+    AVal t   = a_strz(tag);
+    AVal k   = a_strz("id");
+    AVal v   = a_strz(id);
+    a_tag(evt, t);
+    a_setindex(evt, k, v);
+    AStatus st = atm_emit(evt);
+    a_dec(v);
+    a_dec(k);
+    a_dec(t);
+    a_dec(evt);
+    return web_status(st);
+}
+```
+
+atmos.env([
+    mode = [primary=true],
+])
+
+val web = [
+    text = func (id, s) {
+        `web_js_text(A_STR_OF($id)->s, A_STR_OF($s)->s);`
+    },
+    on = func (id, tag) {
+        `web_js_on(A_STR_OF($id)->s, A_STR_OF($tag)->s);`
+    },
+]

@@ -1,0 +1,29 @@
+;; A counter on the DOM: a button that counts, a clock of seconds, and a
+;; button that ends the program.
+
+web.text("msg", "running")
+web.on("inc",  "click")
+web.on("stop", "click")
+
+spawn {
+    var n = 0
+    loop e on :click {
+        if e.id == "inc" {
+            set n = n + 1
+            web.text("count", tostring(n))
+        }
+    }
+}
+
+spawn {
+    var s = 0
+    loop {
+        await 1s
+        set s = s + 1
+        web.text("secs", tostring(s))
+    }
+}
+
+await :click until it.id == "stop"
+web.text("msg", "stopped")
+print("stopped")
