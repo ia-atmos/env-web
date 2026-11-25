@@ -4,7 +4,7 @@ The cheapest path of the material (`ia-atmos/lang`
 `.claude/plans/261124-env-web.md`): build `env-sdl`'s Rocks, unchanged,
 with Emscripten's port of SDL2, and run it headless.
 
-Approved by the author as `#122` (answer "1", 2026-11-25): install emsdk
+Approved by the author as `#1` (`env-web#1`; `#122` in the index of `atmos`) (answer "1", 2026-11-25): install emsdk
 in this container and build a local, read-only clone of `ia-atmos/lang`.
 
 ## Route

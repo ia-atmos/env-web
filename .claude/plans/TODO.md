@@ -1,15 +1,15 @@
 # TODO (env-web)
 
-Items put to the author take numbers of `ISSUES.md` in `ia-atmos/lang`
-(through the session `atmos`).
+Items put to the author are local to this session (`#1`, `#2`, ...;
+`env-web#N` from outside), rule `#71` of `ia-atmos/lang` `TODO.md`.
 
 ## Open with the author
 
-(none)
+- `#2`: scope of `env-web` (SDL as a build of `env-sdl`, `env-web` only the DOM; or both here).
 
 ## Decided
 
-- `#122` (2026-11-25, "1"): install emsdk here, build lang locally.
+- `#1` (2026-11-25, "1"; indexed by `atmos` as its `#122`): install emsdk here, build lang locally.
 
 ## Work
 
