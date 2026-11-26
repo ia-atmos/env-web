@@ -57,3 +57,8 @@ Items put to the author are local to this session (`#1`, `#2`, ...;
 | 14 | A simple IDE as the old one (`atmos-lang/web`: a textarea, Run, a runner in an iframe with the source in the `#` of the URL), two modes (pico, web), the editor in Atmos if possible; the author (2026-11-26): maybe a session `web-ide`, maybe no new repo, a directory `ide/` | decided 2026-11-26 ("#14a", no `#`): a server that compiles; done on `main`: `ide/` (`ide.atm`, `ide.html`, `serve.py`, `test.js`), `atmos-web --pico`; compiling in the page (clang in WebAssembly) not tried |
 | 15 | Excerpt, idiomatic: `ide/ide.atm:16-33`, Run as a `watching` that a new click restarts, cancelling the request in course | shown 2026-11-26 |
 | 16 | Excerpt, bad: `ide/ide.atm:5-8`, the samples read from hidden textareas of the page, with three nested calls; the language has multi-line strings (`"""`), not used | shown 2026-11-26 |
+| 17 | Excerpt (review of code not seen): `web.atm:497-505`, the task of `web.fetch`; good: the `defer` cancels; bad: `(int)$n.u.i` reads inside the value in C | shown 2026-11-26 |
+| 18 | Excerpt, idiomatic: `tst/fetch.atm:15-20`, a request cancelled by a `watching` | shown 2026-11-26 |
+| 19 | Excerpt, bad: `exs/threads.atm:34` and `tst/form.atm:16`, `c && a \|\| b` as a conditional value | shown 2026-11-26 |
+| 20 | Excerpt, bad: `tst/form.atm:8-34`, five `spawn { loop ... on ... }` in a row | shown 2026-11-26 |
+| 21 | The guides of Atmos and pico as steps on the web, as ceu-lang.org; the site: `atmos/`, then Céu to `ceu/`, a landing for both (`261126-site.md`) | open: how a step runs on a static site |
