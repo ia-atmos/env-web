@@ -3,6 +3,12 @@
 Items put to the author are local to this session (`#1`, `#2`, ...;
 `env-web#N` from outside), rule `#71` of `ia-atmos/lang` `TODO.md`.
 
+## Standing
+
+- At each big step (a milestone, a change of what is on screen), show the
+  author a few screenshots in the report (his recommendation of
+  2026-11-26, relayed by `atmos`).
+
 ## Open with the author
 
 - `#2`: scope of `env-web` (SDL as a build of `env-sdl`, `env-web` only the DOM; or both here).
