@@ -3,24 +3,38 @@
 <head><meta charset="utf-8"><title>Atmos IDE</title>
 <style>
   body { margin: 0; font-family: sans-serif; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr auto; height: 100vh; }
-  #bar { grid-column: 1 / 3; padding: 6px 10px; background: #eee; border-bottom: 1px solid #ccc; }
+  body.guide { grid-template-columns: 26em 1fr 1fr; }
+  #text { display: none; padding: 0 12px; overflow: auto; border-right: 1px solid #ccc; font-size: 14px; line-height: 1.4; }
+  body.guide #text { display: block; }
+  #text code { background: #eee; padding: 0 2px; }
+  .guide-only { display: none; }
+  body.guide .guide-only { display: inline; }
+  #bar { grid-column: 1 / -1; padding: 6px 10px; background: #eee; border-bottom: 1px solid #ccc; }
   #code { font-family: monospace; font-size: 14px; padding: 8px; border: 0; border-right: 1px solid #ccc; resize: none; outline: none; tab-size: 4; }
   #runner { width: 100%; height: 100%; border: 0; background: #f8f8f8; }
-  #log { grid-column: 1 / 3; margin: 0; padding: 6px 10px; max-height: 30vh; overflow: auto; background: #222; color: #ddd; font-size: 12px; white-space: pre-wrap; }
+  #log { grid-column: 1 / -1; margin: 0; padding: 6px 10px; max-height: 30vh; overflow: auto; background: #222; color: #ddd; font-size: 12px; white-space: pre-wrap; }
   #log.error { color: #f88; }
   .sample { display: none; }
 </style>
 </head>
-<body>
+<body id="body">
 <div id="bar">
   <b>Atmos</b>
   <select id="mode">
     <option value="web">web (the DOM)</option>
     <option value="pico">pico (graphics)</option>
   </select>
+  <span class="guide-only">
+    <b id="title"></b>
+    <button id="prev">&lt;</button>
+    <select id="step"></select>
+    <button id="next">&gt;</button>
+    <button id="reset">Reset</button>
+  </span>
   <button id="run">Run</button>
   <span id="status"></span>
 </div>
+<div id="text"></div>
 <textarea id="code" spellcheck="false"></textarea>
 <iframe id="runner"></iframe>
 <pre id="log"></pre>

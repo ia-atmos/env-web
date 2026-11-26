@@ -82,7 +82,11 @@ python3 ide/serve.py        # then open http://127.0.0.1:8080/
 An editor, a choice between the two modes, and a button Run, which sends
 the program to `serve.py`: it compiles it (`atmos-web`) and answers with
 the address of its page, shown beside the editor, or with the errors of
-the compiler. The editor itself is an Atmos program over the DOM
+the compiler. With a guide, at `/guide/<name>`, it also shows the steps
+of the guide, each with its text, its program and two exercises
+([`guides/birds.md`](guides/birds.md): the 11 steps of the tutorial of
+pico, at http://127.0.0.1:8080/guide/birds). The editor itself is an
+Atmos program over the DOM
 ([`ide/ide.atm`](ide/ide.atm)). The server runs a compiler on what it
 receives, so it only listens on the machine where it runs.
 

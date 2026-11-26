@@ -1,16 +1,57 @@
 ;; The IDE: an editor, a mode (web or pico), and a button that sends the
 ;; program to the server of the IDE (serve.py), which compiles it and
 ;; answers with the address of its page, shown beside the editor.
+;;
+;; With a guide (the page /guide/<name>), it also shows the steps of the
+;; guide: the text of a step, with its exercises, and its program in the
+;; editor.
+
+val guide = web.get("guide", "content")
 
 func sample () {
     web.set("code", "value", web.get("sample-" ++ web.get("mode", "value"), "value"))
 }
-sample()
 
-spawn {
+task Samples () {
+    sample()
     loop on :change [id="mode"] {
         sample()
     }
+}
+
+task Guide () {
+    val info = await web.fetch("/g/" ++ guide ++ "/info")
+    val l1 = string.find(info.text, "\n")
+    val l2 = string.find(info.text, "\n", l1+1)
+    val n  = tonumber(string.sub(info.text, l2+1))
+    web.set("title", "text", string.sub(info.text, 0, l1-1))
+    web.set("mode",  "value", string.sub(info.text, l1+1, l2-1))
+    loop i in (1,n) {
+        web.new(:option, [parent="step", value=tostring(i), text="step " ++ tostring(i)])
+    }
+    web.set("body", "class.guide", true)
+
+    var i = 1
+    loop {
+        val url = "/g/" ++ guide ++ "/" ++ tostring(i)
+        web.set("step", "value", tostring(i))
+        web.set("text", "innerHTML", (await web.fetch(url ++ "/text")).text)
+        web.set("code", "value",     (await web.fetch(url ++ "/code")).text)
+        web.set("text", "scrollTop", 0)
+
+        val e = await <:change [id="step"] || :click [id="prev"] || :click [id="next"] || :click [id="reset"]>
+        match e.id {
+            "prev" => { set i = math.max(1, i-1) }
+            "next" => { set i = math.min(n, i+1) }
+            "step" => { set i = tonumber(e.value) }
+        }
+    }
+}
+
+pin side = if guide == "" {
+    spawn Samples()
+} else {
+    spawn Guide()
 }
 
 await :click [id="run"]
@@ -18,8 +59,8 @@ loop {
     ;; another click starts over: a request in course is cancelled
     watching :click [id="run"] {
         web.set("status", "text", "compiling...")
-        val r = await web.fetch("/run?mode=" ++ web.get("mode", "value"),
-            [method="POST", body=web.get("code", "value")])
+        val url = "/run?mode=" ++ web.get("mode", "value") ++ "&guide=" ++ guide
+        val r = await web.fetch(url, [method="POST", body=web.get("code", "value")])
         web.set("status", "text", "")
         web.set("log", "class.error", !r.ok)
         if r.ok {
