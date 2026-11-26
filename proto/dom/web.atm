@@ -4,26 +4,78 @@
 ;; the generic `main` returns after the main chunk, and the page calls
 ;; back into the program:
 ;;   - `web_time(ms)`: the time elapsed, from `requestAnimationFrame`;
-;;   - `web_event(tag, id)`: an event of an element, as `:<tag> [id=...]`.
+;;   - `web_event(tag, i)`: an event of an element, as `:<tag> [h]`,
+;;     with the handle of the element, as in `env-iup`.
 ;;
-;; Functions:
-;;   web.text(id, s)    sets the text of the element `id`
-;;   web.on(id, tag)    forwards the event `tag` of the element `id`
+;; An element is a native value, declared with `pin`:
+;;   web.get(id)        the handle of the element `id` (its clicks become
+;;                      `:click [h]`), or an error
+;;   web.text(h, s)     sets the text of the element `h`
 
 ```:prelude
 #include <stdio.h>
 #include <emscripten.h>
 
-EM_JS(void, web_js_text, (const char* id, const char* s), {
+// The elements known to the program, by index, in JS (`Module.webEls`)
+// and in C (their native values, not references: a value clears its
+// slot when it is released).
+EM_JS(int, web_js_get, (const char* id), {
     const e = document.getElementById(UTF8ToString(id));
-    if (e) e.textContent = UTF8ToString(s);
+    if (!e) return -1;
+    const els = Module.webEls;
+    let i = els.indexOf(e);
+    if (i < 0) {
+        i = els.length;
+        els.push(e);
+        e.addEventListener('click', () => Module.webEvent('click', i));
+    }
+    return i;
 });
 
-EM_JS(void, web_js_on, (const char* id, const char* tag), {
-    const i = UTF8ToString(id), t = UTF8ToString(tag);
-    const e = document.getElementById(i);
-    if (e) e.addEventListener(t, () => Module.webEvent(t, i));
+EM_JS(void, web_js_text, (int i, const char* s), {
+    Module.webEls[i].textContent = UTF8ToString(s);
 });
+
+static const char* WEB_KIND = "web.element";
+#define WEB_MAX 256
+static ANat* WEB_NATS[WEB_MAX];
+
+static void web_fin (void* ptr) {
+    WEB_NATS[(intptr_t)ptr - 1] = NULL;
+}
+
+// The native value of the element `i` (owned): the one the program
+// holds, or a new one.
+static AVal web_nat (int i) {
+    if (WEB_NATS[i] != NULL) {
+        AVal v = a_obj(&WEB_NATS[i]->hdr);
+        a_inc(v);
+        return v;
+    }
+    AVal v = a_nat((void*)(intptr_t)(i+1), web_fin, WEB_KIND);
+    WEB_NATS[i] = A_NAT_OF(v);
+    return v;
+}
+
+static AStatus web_get (AVal* ret, AVal id) {
+    if (id.type != A_STR) {
+        return a_error("web.get : expected string");
+    }
+    int i = web_js_get(A_STR_OF(id)->s);
+    if (i<0 || i>=WEB_MAX) {
+        return a_error("web.get : no element : %s", A_STR_OF(id)->s);
+    }
+    a_set(ret, web_nat(i));
+    return A_OK;
+}
+
+static AStatus web_text (AVal h, AVal s) {
+    if (!a_nat_is(h, WEB_KIND) || s.type!=A_STR) {
+        return a_error("web.text : expected element and string");
+    }
+    web_js_text((int)((intptr_t)a_nat_ptr(h) - 1), A_STR_OF(s)->s);
+    return A_OK;
+}
 
 // 0: alive, 1: the program ended, 2: an error (dumped)
 static int web_status (AStatus st) {
@@ -47,18 +99,24 @@ EMSCRIPTEN_KEEPALIVE int web_time (double ms) {
     return web_status((n > 0) ? atm_emit(a_int((AInt)n)) : A_OK);
 }
 
-EMSCRIPTEN_KEEPALIVE int web_event (const char* tag, const char* id) {
+// `:<tag> [h]`: the element is only known if the program holds it
+EMSCRIPTEN_KEEPALIVE int web_event (const char* tag, int i) {
     if (!atm_alive()) {
         return 1;
     }
+    if (i<0 || i>=WEB_MAX || WEB_NATS[i]==NULL) {
+        return 0;
+    }
     AVal evt = a_tab();
     AVal t   = a_strz(tag);
-    AVal k   = a_strz("id");
-    AVal v   = a_strz(id);
+    AVal k   = a_strz("h");
+    AVal h   = web_nat(i);
     a_tag(evt, t);
-    a_setindex(evt, k, v);
-    AStatus st = atm_emit(evt);
-    a_dec(v);
+    AStatus st = a_tab_field(evt, k, h);
+    if (st == A_OK) {
+        st = atm_emit(evt);
+    }
+    a_dec(h);
     a_dec(k);
     a_dec(t);
     a_dec(evt);
@@ -71,10 +129,12 @@ atmos.env([
 ])
 
 val web = [
-    text = func (id, s) {
-        `web_js_text(A_STR_OF($id)->s, A_STR_OF($s)->s);`
+    get = func (id) {
+        var h
+        `st = web_get(&$h, $id);`
+        h
     },
-    on = func (id, tag) {
-        `web_js_on(A_STR_OF($id)->s, A_STR_OF($tag)->s);`
+    text = func (h, s) {
+        `st = web_text($h, $s);`
     },
 ]

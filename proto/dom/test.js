@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
   const logs = [];
   p.on('console', m => logs.push(m.type()+': '+m.text()));
   p.on('pageerror', e => logs.push('pageerror: '+e.message));
-  await p.goto('process.env.URL || 'http://127.0.0.1:8766/counter.html'');
+  await p.goto(process.env.URL || 'http://127.0.0.1:8766/counter.html');
   await p.waitForTimeout(500);
   const q = async () => ({msg: await p.textContent('#msg'), count: await p.textContent('#count'), secs: await p.textContent('#secs')});
   console.log('t0.5', JSON.stringify(await q()));

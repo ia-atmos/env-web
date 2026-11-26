@@ -11,11 +11,12 @@ var Module = {
     print: (s) => { document.getElementById('out').textContent += s + '\n'; console.log(s); },
     printErr: (s) => { document.getElementById('out').textContent += s + '\n'; console.error(s); },
     status: 0,
+    webEls: [],
     webEvent: (t, i) => {
         if (Module.status === 0) Module.status = Module._web_event_js(t, i);
     },
     onRuntimeInitialized: () => {
-        Module._web_event_js = Module.cwrap('web_event', 'number', ['string','string']);
+        Module._web_event_js = Module.cwrap('web_event', 'number', ['string','number']);
         let prv = performance.now();
         const frame = (now) => {
             if (Module.status !== 0) return;

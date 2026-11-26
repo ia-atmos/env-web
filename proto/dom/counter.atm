@@ -1,29 +1,29 @@
 ;; A counter on the DOM: a button that counts, a clock of seconds, and a
-;; button that ends the program.
+;; button that ends both (the style of env-iup's button-counter).
 
-web.text("msg", "running")
-web.on("inc",  "click")
-web.on("stop", "click")
+pin msg   = web.get("msg")
+pin count = web.get("count")
+pin secs  = web.get("secs")
+pin inc   = web.get("inc")
+pin stop  = web.get("stop")
 
-spawn {
-    var n = 0
-    loop e on :click {
-        if e.id == "inc" {
-            set n = n + 1
-            web.text("count", tostring(n))
+web.text(msg, "running")
+
+watching :click [h=stop] {
+    spawn {
+        var s = 0
+        loop {
+            await 1s
+            set s += 1
+            web.text(secs, tostring(s))
         }
     }
-}
-
-spawn {
-    var s = 0
-    loop {
-        await 1s
-        set s = s + 1
-        web.text("secs", tostring(s))
+    var n = 0
+    loop on :click [h=inc] {
+        set n += 1
+        web.text(count, tostring(n))
     }
 }
 
-await :click until it.id == "stop"
-web.text("msg", "stopped")
+web.text(msg, "stopped")
 print("stopped")
