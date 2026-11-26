@@ -11,6 +11,8 @@ Items put to the author are local to this session (`#1`, `#2`, ...;
 - For each group of changes, show one pair of short Atmos excerpts from
   that work, with file and line: one idiomatic, one bad (awkward,
   verbose, a workaround) (his rule of 2026-11-26, relayed by `atmos`).
+  Each excerpt takes a `#N` of this session, listed in the index below;
+  each bad one says why, and what would make it better.
 
 ## Open with the author
 
@@ -28,3 +30,12 @@ Items put to the author are local to this session (`#1`, `#2`, ...;
 - [x] Prototype of the DOM, branch `proto-dom`: an environment with no step, driven by the page; works in Chromium, no change to lang.
 - [ ] Report what works; then the questions of the material, section 3
       (scope, loop, building, assets, DOM, tests, editor), one at a time.
+
+## Index of items
+
+| # | Item | State |
+|---|---|---|
+| 1 | Install emsdk here, build lang locally | decided 2026-11-25 ("1") |
+| 2 | Scope of env-web: (a) SDL as a build of env-sdl, env-web only the DOM; (b) both here | open, recommended (a) |
+| 3 | Excerpt, idiomatic: `proto/dom/counter.atm:18-27` (branch `proto-dom`), a parallel clock and the end awaiting an event | shown 2026-11-26 |
+| 4 | Excerpt, bad: `proto/dom/counter.atm:10-14`, all clicks in one `:click` filtered by an `if` on a string id; better: elements as values in `web.atm`, the filter in the await | shown 2026-11-26 |
