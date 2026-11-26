@@ -8,6 +8,9 @@ Items put to the author are local to this session (`#1`, `#2`, ...;
 - At each big step (a milestone, a change of what is on screen), show the
   author a few screenshots in the report (his recommendation of
   2026-11-26, relayed by `atmos`).
+- For each group of changes, show one pair of short Atmos excerpts from
+  that work, with file and line: one idiomatic, one bad (awkward,
+  verbose, a workaround) (his rule of 2026-11-26, relayed by `atmos`).
 
 ## Open with the author
 
