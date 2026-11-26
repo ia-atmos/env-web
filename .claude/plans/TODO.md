@@ -28,6 +28,8 @@ Items put to the author are local to this session (`#1`, `#2`, ...;
 - [ ] Audio in a real browser; the test mode of env-sdl under node or Chromium.
 - [x] The old plans of the DOM found and summarized (`261125-dom.md`).
 - [x] Prototype of the DOM, branch `proto-dom`: an environment with no step, driven by the page; works in Chromium, no change to lang.
+- [x] `#10a`: `web.atm` with `set`, `get`, `new`, `del` and the events by capture; `exs/counter`, `exs/threads`, `tst/form`; 26 checks pass in Chromium.
+- [ ] Open in the API: preventing the default, selectors, `:focus`, the clock in a hidden tab (`requestAnimationFrame` stops), `atm_quit` at the end.
 - [ ] Report what works; then the questions of the material, section 3
       (scope, loop, building, assets, DOM, tests, editor), one at a time.
 
@@ -44,4 +46,4 @@ Items put to the author are local to this session (`#1`, `#2`, ...;
 | 7 | Excerpt, bad: `proto/dom/counter.atm:4-8`, five `pin x = web.get("id")` that repeat the ids of the HTML | the author: why `new`, why not the id instead of `h`? Done: `proto/dom-id` (841a304), `:click [id="inc"]`, test passes; asked as `#9` |
 | 8 | Repos: env-web (ia-atmos/env-web) the DOM, env-pico (ia-atmos/env-pico) pico, its browser build as flags/target in its own Makefile | corrected 2026-11-26: env-pico has no build of the browser, only ifdefs set from outside (`__EMSCRIPTEN__`); the build is outside (env-web) |
 | 9 | The DOM by ids (`:click [id="inc"]`, `web.text("count", s)`) instead of handles | the author asked for the whole API: `261126-web-api.md` |
-| 10 | The API of `261126-web-api.md` as the base of env-web | the author: "Text e set parecem colidir": `web.text` removed, `text` a property of `set`/`get`; then (2026-11-26): "A princípio a proposta parece boa", and asked a study of similar cases: `261126-web-study.md` |
+| 10 | The API of `261126-web-api.md` as the base of env-web | the author: "Text e set parecem colidir": `web.text` removed, `text` a property of `set`/`get`; then (2026-11-26): "A princípio a proposta parece boa", and asked a study of similar cases: `261126-web-study.md`; decided 2026-11-26 ("#10a"): implemented on `main` (`web.atm`, `atmos-web`, `exs/`, `tst/`) |

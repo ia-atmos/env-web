@@ -1,0 +1,440 @@
+;; web.atm: the environment of the browser for Atmos, over the DOM.
+;;
+;;      include "web.atm"
+;;
+;; or, with no `include`, with `atmos-web`, which builds a page from a
+;; program (see the README). The program becomes WebAssembly, through
+;; Emscripten.
+;;
+;; The browser drives the program: the environment has no `step`, so the
+;; main chunk runs when the page loads, and then the page calls back into
+;; the program, with the time of each frame and with the events of the
+;; page. The program ends when its main chunk ends.
+;;
+;; An element is named by its `id`, a string, as in the HTML.
+;;
+;; Events (one listener of each kind, on the document, in the capture
+;; phase: nothing is registered, and an element created later emits too):
+;;
+;;      :click  [id]            a click on an element or inside it: `id`
+;;                              is that of the nearest element that has
+;;                              one (absent if none has)
+;;      :input  [id,value]      the text of a field changed (each key)
+;;      :change [id,value]      a field, a box or a choice was committed:
+;;                              `value` is a string, or a boolean for a
+;;                              checkbox or a radio
+;;      :toggle [id,open]       a `<details>` opened or closed
+;;      :key.dn [id,key,code]   a key was pressed (no repetition), and
+;;      :key.up [id,key,code]   released: `key` and `code` as in the DOM
+;;                              (`"a"`, `"KeyA"`); `id` of the element
+;;                              with the focus, if any
+;;
+;; The time is emitted at each frame (`requestAnimationFrame`), as a
+;; number of units of the clock, as every primary environment does.
+;;
+;; Functions:
+;;
+;;      web.set(id, name, v)    sets a property of an element: `"text"`
+;;                              (its text), `"class.<c>"` (the class `c`,
+;;                              on or off), `"style.<p>"` (the CSS property
+;;                              `p`), or a property of the DOM (`"value"`,
+;;                              `"checked"`, `"open"`, `"disabled"`,
+;;                              `"hidden"`, ...); `v` is a string, a
+;;                              number, a boolean or nil
+;;      web.get(id, name)       reads a property, with the same names: a
+;;                              string, a number, a boolean, or nil
+;;      web.new(tag, t)         creates an element `tag` (`:button`,
+;;                              `:details`, ...) and gives its id: the
+;;                              field `id` of `t`, or a fresh one
+;;                              (`"web1"`, ...). It goes into the element
+;;                              `parent` of `t`, or into the body. The
+;;                              other named fields of `t` are properties,
+;;                              as in `web.set`, and the positional ones
+;;                              are the ids of its children, in order,
+;;                              which move into it
+;;      web.del(id)             removes an element, with its children
+;;
+;; A function fails with an error if the element does not exist.
+
+```:prelude
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <emscripten.h>
+
+#ifndef __EMSCRIPTEN__
+#error "web.atm: the program must be built with Emscripten (emcc)"
+#endif
+
+// "\x24" is the dollar sign, which a native literal reserves
+EM_JS_DEPS(web_deps, "\x24stringToNewUTF8,\x24UTF8ToString");
+
+// 0: alive, 1: the program ended, 2: an error (dumped)
+static int web_status (AStatus st) {
+    if (st != A_OK) {
+        if (st == A_ESCAPE) {
+            st = a_escape_err();
+        }
+        fflush(stdout);
+        a_error_dump();
+        return 2;
+    }
+    fflush(stdout);
+    return atm_alive() ? 0 : 1;
+}
+
+EMSCRIPTEN_KEEPALIVE void web_free (void* p) {
+    free(p);
+}
+
+// The time of a frame, in milliseconds: what is less than a unit of the
+// clock is carried to the next frame.
+EMSCRIPTEN_KEEPALIVE int web_time (double ms) {
+    static double acc = 0;
+    if (!atm_alive()) {
+        return 1;
+    }
+    acc += ms * 1000;
+    int64_t n = (int64_t)(acc / A_CLOCK_US);
+    acc -= (double)n * A_CLOCK_US;
+    return web_status((n > 0) ? atm_emit(a_int((AInt)n)) : A_OK);
+}
+
+// Sets a field of an event (the value is consumed).
+static void web_fld (AVal evt, const char* k, AVal v) {
+    AVal key = a_strz(k);
+    a_setindex(evt, key, v);
+    a_dec(key);
+    a_dec(v);
+}
+
+// An event `:tag [id, k1=v1, k2=v2]`: `id` and the fields may be absent
+// (NULL); a field is a string (type 1) or a boolean (type 2, "1" or "").
+EMSCRIPTEN_KEEPALIVE int web_event (
+    const char* tag, const char* id,
+    const char* k1, int t1, const char* v1,
+    const char* k2, int t2, const char* v2
+) {
+    if (!atm_alive()) {
+        return 1;
+    }
+    AVal evt = a_tab();
+    AVal t   = a_strz(tag);
+    a_tag(evt, t);
+    a_dec(t);
+    if (id != NULL) {
+        web_fld(evt, "id", a_strz(id));
+    }
+    if (k1 != NULL) {
+        web_fld(evt, k1, (t1 == 2) ? a_bool(v1[0] != '\0') : a_strz(v1));
+    }
+    if (k2 != NULL) {
+        web_fld(evt, k2, (t2 == 2) ? a_bool(v2[0] != '\0') : a_strz(v2));
+    }
+    AStatus st = atm_emit(evt);
+    a_dec(evt);
+    return web_status(st);
+}
+
+// The side of the page: the listeners, the loop of frames, and the
+// helpers of the functions below, in `Module.web`.
+EM_JS(void, web_js_init, (void), {
+    const W = Module.web = { n: 0, status: 0 };
+
+    W.put = (el, name, v) => {
+        if (name === 'text') {
+            el.textContent = (v == null) ? "" : v;
+        } else if (name.startsWith('class.')) {
+            el.classList.toggle(name.slice(6), !!v);
+        } else if (name.startsWith('style.')) {
+            el.style.setProperty(name.slice(6), (v == null) ? "" : String(v));
+        } else {
+            el[name] = v;
+        }
+    };
+
+    W.read = (el, name) => {
+        if (name === 'text') {
+            return el.textContent;
+        } else if (name.startsWith('class.')) {
+            return el.classList.contains(name.slice(6));
+        } else if (name.startsWith('style.')) {
+            return getComputedStyle(el).getPropertyValue(name.slice(6));
+        } else {
+            return el[name];
+        }
+    };
+
+    // a field of an event, as [key, type, value] in the heap
+    const fld = (k, v) => (k == null) ? [0, 0, 0] : [
+        stringToNewUTF8(k),
+        (typeof v === 'boolean') ? 2 : 1,
+        stringToNewUTF8((typeof v === 'boolean') ? (v ? '1' : "") : String(v)),
+    ];
+
+    W.emit = (tag, target, k1, v1, k2, v2) => {
+        if (W.status !== 0) {
+            return;
+        }
+        const el = (target && target.closest) ? target.closest('[id]') : null;
+        const t  = stringToNewUTF8(tag);
+        const id = (el && el.id) ? stringToNewUTF8(el.id) : 0;
+        const f1 = fld(k1, v1);
+        const f2 = fld(k2, v2);
+        W.status = _web_event(t, id, f1[0], f1[1], f1[2], f2[0], f2[1], f2[2]);
+        for (const p of [t, id, f1[0], f1[2], f2[0], f2[2]]) {
+            if (p) {
+                _web_free(p);
+            }
+        }
+    };
+
+    // the capture phase: `toggle` (and the focus) does not bubble
+    const on = (type, f) => document.addEventListener(type, f, true);
+    on('click',  (e) => W.emit('click', e.target));
+    on('input',  (e) => W.emit('input', e.target, 'value', String(e.target.value)));
+    on('change', (e) => {
+        const t = e.target;
+        const box = (t.type === 'checkbox' || t.type === 'radio');
+        W.emit('change', t, 'value', box ? !!t.checked : String(t.value));
+    });
+    on('toggle', (e) => W.emit('toggle', e.target, 'open', !!e.target.open));
+    on('keydown', (e) => {
+        if (!e.repeat) {
+            W.emit('key.dn', e.target, 'key', e.key, 'code', e.code);
+        }
+    });
+    on('keyup', (e) => W.emit('key.up', e.target, 'key', e.key, 'code', e.code));
+
+    // the time
+    let prv = performance.now();
+    const frame = (now) => {
+        if (W.status !== 0) {
+            return;
+        }
+        W.status = _web_time(now - prv);
+        prv = now;
+        requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+});
+
+// `k`: 0 nil, 1 boolean (`n`), 2 number (`n`), 3 string (`s`).
+// Returns 0 if the element does not exist.
+EM_JS(int, web_js_set, (const char* id, const char* name, int k, double n, const char* s), {
+    const el = document.getElementById(UTF8ToString(id));
+    if (!el) {
+        return 0;
+    }
+    const v = (k === 0) ? null : (k === 1) ? !!n : (k === 2) ? n : UTF8ToString(s);
+    Module.web.put(el, UTF8ToString(name), v);
+    return 1;
+});
+
+// A new string: "!" (no element), "z" (nil), "b0"/"b1", "n<number>",
+// "s<string>".
+EM_JS(char*, web_js_get, (const char* id, const char* name), {
+    const el = document.getElementById(UTF8ToString(id));
+    if (!el) {
+        return stringToNewUTF8('!');
+    }
+    const v = Module.web.read(el, UTF8ToString(name));
+    const s = (typeof v === 'boolean') ? ('b' + (v ? 1 : 0))
+            : (typeof v === 'number')  ? ('n' + v)
+            : (typeof v === 'string')  ? ('s' + v)
+            : 'z';
+    return stringToNewUTF8(s);
+});
+
+// A new element, in `parent` or in the body: its id (a new string), or
+// "!<message>".
+EM_JS(char*, web_js_new, (const char* tag, const char* id, const char* parent), {
+    const W = Module.web;
+    let i = id ? UTF8ToString(id) : null;
+    if (i !== null && document.getElementById(i)) {
+        return stringToNewUTF8('!the id exists : ' + i);
+    }
+    const p = parent ? document.getElementById(UTF8ToString(parent)) : document.body;
+    if (!p) {
+        return stringToNewUTF8('!no element : ' + UTF8ToString(parent));
+    }
+    while (i === null) {
+        const x = 'web' + (++W.n);
+        if (!document.getElementById(x)) {
+            i = x;
+        }
+    }
+    const el = document.createElement(UTF8ToString(tag));
+    el.id = i;
+    p.appendChild(el);
+    return stringToNewUTF8(i);
+});
+
+// Moves `child` to the end of `parent`: 0 if one of them does not exist.
+EM_JS(int, web_js_append, (const char* parent, const char* child), {
+    const p = document.getElementById(UTF8ToString(parent));
+    const c = document.getElementById(UTF8ToString(child));
+    if (!p || !c || c.contains(p)) {
+        return 0;
+    }
+    p.appendChild(c);
+    return 1;
+});
+
+EM_JS(int, web_js_del, (const char* id), {
+    const el = document.getElementById(UTF8ToString(id));
+    if (!el) {
+        return 0;
+    }
+    el.remove();
+    return 1;
+});
+
+static AStatus web_set (AVal id, AVal name, AVal v) {
+    if (id.type!=A_STR || name.type!=A_STR) {
+        return a_error("web.set : expected id and name");
+    }
+    int ok;
+    switch (v.type) {
+        case A_NIL:
+            ok = web_js_set(A_STR_OF(id)->s, A_STR_OF(name)->s, 0, 0, NULL);
+            break;
+        case A_BOOL:
+            ok = web_js_set(A_STR_OF(id)->s, A_STR_OF(name)->s, 1, v.u.b, NULL);
+            break;
+        case A_INT:
+        case A_NUM:
+            ok = web_js_set(A_STR_OF(id)->s, A_STR_OF(name)->s, 2, a_dbl(v), NULL);
+            break;
+        case A_STR:
+            ok = web_js_set(A_STR_OF(id)->s, A_STR_OF(name)->s, 3, 0, A_STR_OF(v)->s);
+            break;
+        default:
+            return a_error("web.set : invalid value : %s", A_STR_OF(name)->s);
+    }
+    if (!ok) {
+        return a_error("web.set : no element : %s", A_STR_OF(id)->s);
+    }
+    return A_OK;
+}
+
+static AStatus web_get (AVal* dst, AVal id, AVal name) {
+    if (id.type!=A_STR || name.type!=A_STR) {
+        return a_error("web.get : expected id and name");
+    }
+    char* s = web_js_get(A_STR_OF(id)->s, A_STR_OF(name)->s);
+    AStatus st = A_OK;
+    switch (s[0]) {
+        case '!':
+            st = a_error("web.get : no element : %s", A_STR_OF(id)->s);
+            break;
+        case 'b':
+            a_set(dst, a_bool(s[1] == '1'));
+            break;
+        case 'n': {
+            double d = atof(s+1);
+            a_set(dst, (d == (double)(AInt)d) ? a_int((AInt)d) : a_num(d));
+            break;
+        }
+        case 's':
+            a_set(dst, a_strz(s+1));
+            break;
+        default:
+            a_set(dst, a_nil());
+            break;
+    }
+    free(s);
+    return st;
+}
+
+// The string of the field `k` of `t`, or NULL.
+static const char* web_opt (AVal t, const char* k) {
+    if (t.type != A_TAB) {
+        return NULL;
+    }
+    AVal key = a_strz(k);
+    AVal v = a_tab_get(A_TAB_OF(t), key);
+    a_dec(key);
+    return (v.type == A_STR) ? A_STR_OF(v)->s : NULL;
+}
+
+static AStatus web_new (AVal* dst, AVal tag, AVal t) {
+    if (tag.type != A_STR) {
+        return a_error("web.new : expected tag");
+    }
+    if (t.type!=A_NIL && t.type!=A_TAB) {
+        return a_error("web.new : expected table");
+    }
+    char* s = web_js_new(A_STR_OF(tag)->s, web_opt(t,"id"), web_opt(t,"parent"));
+    if (s[0] == '!') {
+        AStatus st = a_error("web.new : %s", s+1);
+        free(s);
+        return st;
+    }
+    AVal id = a_strz(s);
+    free(s);
+    AStatus st = A_OK;
+    if (t.type == A_TAB) {
+        // the children, in order
+        for (AInt i=0; st==A_OK; i++) {
+            AVal c = a_tab_get(A_TAB_OF(t), a_int(i));
+            if (c.type == A_NIL) {
+                break;
+            }
+            if (c.type!=A_STR || !web_js_append(A_STR_OF(id)->s, A_STR_OF(c)->s)) {
+                st = a_error("web.new : invalid child : expected the id of an element");
+            }
+        }
+        // the properties
+        uint32_t pos = 0;
+        AVal k, v;
+        while (st==A_OK && a_tab_next(A_TAB_OF(t), &pos, &k, &v)) {
+            if (k.type==A_STR && strcmp(A_STR_OF(k)->s,"id") && strcmp(A_STR_OF(k)->s,"parent")) {
+                st = web_set(id, k, v);
+            }
+        }
+    }
+    if (st != A_OK) {
+        web_js_del(A_STR_OF(id)->s);
+        a_dec(id);
+        return st;
+    }
+    a_set(dst, id);
+    return A_OK;
+}
+
+static AStatus web_del (AVal id) {
+    if (id.type != A_STR) {
+        return a_error("web.del : expected id");
+    }
+    if (!web_js_del(A_STR_OF(id)->s)) {
+        return a_error("web.del : no element : %s", A_STR_OF(id)->s);
+    }
+    return A_OK;
+}
+```
+
+`web_js_init();`
+
+atmos.env([
+    mode = [primary=true],
+])
+
+val web = [
+    set = func (id, name, v) {
+        `st = web_set($id, $name, $v);`
+    },
+    get = func (id, name) {
+        var v
+        `st = web_get(&$v, $id, $name);`
+        v
+    },
+    new = func (tag, t) {
+        var id
+        `st = web_new(&$id, $tag, $t);`
+        id
+    },
+    del = func (id) {
+        `st = web_del($id);`
+    },
+]

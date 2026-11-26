@@ -1,0 +1,53 @@
+;; A tree of threads, as in the old plan of the DOM: the program creates
+;; the page. A new thread each second, a reply to the last one each
+;; 200ms, a counter of the threads that are open, and a button that
+;; removes the first thread.
+
+web.new(:p, [
+    web.new(:button, [id="pop", text="remove the first"]),
+    web.new(:span,   [id="open", text=" open: 0"]),
+])
+web.new(:div, [id="tree"])
+
+val senders = ["alice", "bob", "chico", "diana"]
+
+task Thread (n) {
+    val id = "t" ++ tostring(n)
+    web.new(:details, [id=id, parent="tree", open=true,
+        web.new(:summary, [text = senders@(n % #senders) ++ ": thread " ++ tostring(n)]),
+    ])
+    defer {
+        web.del(id)
+    }
+    var r = 0
+    loop {
+        await 200ms
+        set r += 1
+        web.new(:div, [parent=id, text="reply " ++ tostring(r)])
+    }
+}
+
+spawn {     ;; how many are open
+    var n = 0
+    loop e on :toggle {
+        set n += (e.open && 1 || -1)
+        web.set("open", "text", " open: " ++ tostring(n))
+    }
+}
+
+pin threads = tasks()
+spawn {     ;; removes the first thread alive
+    loop on :click [id="pop"] {
+        loop _,t in threads {
+            abort t
+            break
+        }
+    }
+}
+
+var n = 0
+loop {
+    set n += 1
+    spawn @threads Thread(n)
+    await 1s
+}

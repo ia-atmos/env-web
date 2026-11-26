@@ -1,0 +1,23 @@
+;; A counter over a page that exists (counter.html): a button that
+;; counts, a clock of seconds, and a button that ends both.
+
+web.set("msg", "text", "running")
+
+watching :click [id="stop"] {
+    spawn {
+        var s = 0
+        loop {
+            await 1s
+            set s += 1
+            web.set("secs", "text", tostring(s))
+        }
+    }
+    var n = 0
+    loop on :click [id="inc"] {
+        set n += 1
+        web.set("count", "text", tostring(n))
+    }
+}
+
+web.set("msg", "text", "stopped")
+print("stopped")
