@@ -34,8 +34,8 @@ const tests = {
         check('threads: a fresh id', /^web\d+$/.test(await p.locator('#t1 > summary').getAttribute('id')), true);
         await p.click('#t2 > summary');
         await p.waitForTimeout(100);
-        check('threads: one closed', await p.textContent('#open'), ' open: 2');
-        await p.click('#pop');
+        check('threads: one closed', await p.textContent('#open'), 'open: 2');
+        await p.click('#t1-x');
         await p.waitForTimeout(100);
         check('threads: the first removed', [await p.locator('#t1').count(), await p.locator('#t2').count()], [0, 1]);
         await p.waitForTimeout(600);
