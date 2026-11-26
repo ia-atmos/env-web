@@ -14,6 +14,11 @@ Items put to the author are local to this session (`#1`, `#2`, ...;
   Each excerpt takes a `#N` of this session, listed in the index below;
   each bad one says why, and what would make it better.
 
+- Before writing Atmos, read `ia-atmos/lang` `.claude/plans/IDIOMS.md` (the
+  author's "crie", `atmos#29`, 2026-11-26). When he corrects or approves
+  an excerpt here and a general rule comes out, send it to `atmos` with
+  `env-web#N`, a before and an after.
+
 ## Open with the author
 
 - `#5`: where the browser build of pico lives (`261126-pico.md`).
