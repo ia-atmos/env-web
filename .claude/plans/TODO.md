@@ -61,4 +61,4 @@ Items put to the author are local to this session (`#1`, `#2`, ...;
 | 18 | Excerpt, idiomatic: `tst/fetch.atm:15-20`, a request cancelled by a `watching` | shown 2026-11-26 |
 | 19 | Excerpt, bad: `exs/threads.atm:34` and `tst/form.atm:16`, `c && a \|\| b` as a conditional value | shown 2026-11-26 |
 | 20 | Excerpt, bad: `tst/form.atm:8-34`, five `spawn { loop ... on ... }` in a row | shown 2026-11-26 |
-| 21 | The guides of Atmos and pico as steps on the web, as ceu-lang.org; the site: `atmos/`, then Céu to `ceu/`, a landing for both (`261126-site.md`) | open: how a step runs on a static site |
+| 21 | The guides of Atmos and pico as steps on the web, as ceu-lang.org; the site: `atmos/`, then Céu to `ceu/`, a landing for both (`261126-site.md`) | decided 2026-11-26 ("B"): a compile server on the host; it only compiles, the program runs in the browser. The guide of Atmos exists in `atmos-lang/atmos` `doc/guide.md` (11 of its 24 blocks compile here): to port |
