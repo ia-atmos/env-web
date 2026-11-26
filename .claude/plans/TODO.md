@@ -67,3 +67,5 @@ Items put to the author are local to this session (`#1`, `#2`, ...;
 | 24 | Excerpt, idiomatic: `ide/ide.atm:34-48`, the loop of a step: load, then await one of four events and `match` on its id | shown 2026-11-26 |
 | 25 | Excerpt, bad: `ide/ide.atm:22-27`, the three lines of `/info` cut with `string.find` and `string.sub` | shown 2026-11-26 |
 | 26 | The guide of Atmos as steps (lang 5d5ad76, `doc/guide.md`, 21 examples, from `atmos-lang`) | done on `main`: `guides/atmos.md` has only the 42 exercises; the text and the programs are read from the checkout of lang; `atmos-web --text` and `clock.atm` (the default environment in the browser); the 21 programs print in Chromium what their `.out` files have |
+| 27 | The plan of the host of ceu-lang.org | answered 2026-11-26: DreamHost "Shared Unlimited" |
+| 28 | How Run works on the site, on a shared host | decided 2026-11-26 ("c"): try to compile on DreamHost itself (CGI); first a probe: `site/probe.sh`, run over SSH by the workflow `probe.yml` (secrets of the repository) or by him |

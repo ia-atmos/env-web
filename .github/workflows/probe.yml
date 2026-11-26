@@ -1,0 +1,25 @@
+# Runs site/probe.sh on the host of the site, over SSH, to see whether it
+# can compile pages (emcc). Started by hand only (Actions, "Probe the
+# host", Run workflow). It needs the secrets DH_SSH_KEY (a private key
+# whose public half is authorized on the host), DH_HOST and DH_USER.
+name: Probe the host
+on:
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run the probe over SSH
+        env:
+          DH_SSH_KEY: ${{ secrets.DH_SSH_KEY }}
+          DH_HOST: ${{ secrets.DH_HOST }}
+          DH_USER: ${{ secrets.DH_USER }}
+        run: |
+          test -n "$DH_SSH_KEY" -a -n "$DH_HOST" -a -n "$DH_USER" || { echo "the secrets DH_SSH_KEY, DH_HOST and DH_USER are not set"; exit 1; }
+          mkdir -p ~/.ssh
+          printf '%s\n' "$DH_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H "$DH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          ssh -i ~/.ssh/id_deploy -o BatchMode=yes "$DH_USER@$DH_HOST" 'sh -s' < site/probe.sh
