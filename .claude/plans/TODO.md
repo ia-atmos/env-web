@@ -30,6 +30,9 @@ Items put to the author are local to this session (`#1`, `#2`, ...;
 - [x] Prototype of the DOM, branch `proto-dom`: an environment with no step, driven by the page; works in Chromium, no change to lang.
 - [x] `#10a`: `web.atm` with `set`, `get`, `new`, `del` and the events by capture; `exs/counter`, `exs/threads`, `tst/form`; 26 checks pass in Chromium.
 - [ ] Open in the API: preventing the default, selectors, `:focus`, the clock in a hidden tab (`requestAnimationFrame` stops), `atm_quit` at the end.
+- [x] `paper-web#11`: sizes and time to start (`261126-measures.md`).
+- [ ] `paper-web#7`: a request to a server (`fetch`) as an await, cancelled by a `defer` (for the type-ahead example of the paper).
+- [ ] `paper-web#6`: the seven 7GUIs on the web (`exs/7guis/`), close to those of env-iup; report what the API lacked.
 - [ ] Report what works; then the questions of the material, section 3
       (scope, loop, building, assets, DOM, tests, editor), one at a time.
 
