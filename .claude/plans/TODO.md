@@ -31,7 +31,8 @@ Items put to the author are local to this session (`#1`, `#2`, ...;
 - [x] `#10a`: `web.atm` with `set`, `get`, `new`, `del` and the events by capture; `exs/counter`, `exs/threads`, `tst/form`; 26 checks pass in Chromium.
 - [ ] Open in the API: preventing the default, selectors, `:focus`, the clock in a hidden tab (`requestAnimationFrame` stops), `atm_quit` at the end.
 - [x] `paper-web#11`: sizes and time to start (`261126-measures.md`).
-- [ ] `paper-web#7`: a request to a server (`fetch`) as an await, cancelled by a `defer` (for the type-ahead example of the paper).
+- [x] `paper-web#7`: `await web.fetch(url, t)`, cancelled with its task (`tst/fetch.atm`).
+- [x] `#14a`: the IDE (`ide/`), and `atmos-web --pico` (the runtime and pico cached in `.cache/`).
 - [ ] `paper-web#6`: the seven 7GUIs on the web (`exs/7guis/`), close to those of env-iup; report what the API lacked.
 - [ ] Report what works; then the questions of the material, section 3
       (scope, loop, building, assets, DOM, tests, editor), one at a time.
@@ -53,4 +54,4 @@ Items put to the author are local to this session (`#1`, `#2`, ...;
 | 11 | A session `paper-web` (the author, 2026-11-26: "Depois criar uma sessão paper-web ... comparar com elm,hiphop e outros. Mande um plano pra lá") | plan written (`261126-paper-web.md`); created by `atmos` on 2026-11-26: session_011eECoei7PA2fA6jzUtWpqz, in ia-atmos/lang (the plan copied to its `.claude/plans/261126-paper-web.md`, d0d1c80); it writes `papers/web.md`; this session answers its questions and takes the requests of section 6 |
 | 12 | Excerpt, idiomatic: `exs/threads.atm:13-26`, a thread as a task whose `defer` removes its element | shown 2026-11-26 |
 | 13 | Excerpt, bad: `exs/threads.atm:40-45`, `loop _,t in threads { abort t ; break }` to abort the first task of a pool | the author (2026-11-26): "nao poderia guardar a 1a por fora? pq remover a 1a mesmo?": the case was artificial; redone: each thread has its own button and ends itself (`watching :click [id=x]`), no iteration of the pool; then he explained: spawn in the pool and keep the reference outside (`val first = spawn @threads Thread(1)`, `abort first`): tested, works; nothing missing in the language; acknowledged |
-| 14 | A simple IDE as the old one (`atmos-lang/web`: a textarea, Run, a runner in an iframe with the source in the `#` of the URL), two modes (pico, web), the editor in Atmos if possible; the author (2026-11-26): maybe a session `web-ide`, maybe no new repo, a directory `ide/` | open: where the compilation runs (the old one interpreted Lua in the page; Atmos needs a C compiler: a server, or clang in the page) |
+| 14 | A simple IDE as the old one (`atmos-lang/web`: a textarea, Run, a runner in an iframe with the source in the `#` of the URL), two modes (pico, web), the editor in Atmos if possible; the author (2026-11-26): maybe a session `web-ide`, maybe no new repo, a directory `ide/` | decided 2026-11-26 ("#14a", no `#`): a server that compiles; done on `main`: `ide/` (`ide.atm`, `ide.html`, `serve.py`, `test.js`), `atmos-web --pico`; compiling in the page (clang in WebAssembly) not tried |

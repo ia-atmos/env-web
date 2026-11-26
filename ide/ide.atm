@@ -1,0 +1,33 @@
+;; The IDE: an editor, a mode (web or pico), and a button that sends the
+;; program to the server of the IDE (serve.py), which compiles it and
+;; answers with the address of its page, shown beside the editor.
+
+func sample () {
+    web.set("code", "value", web.get("sample-" ++ web.get("mode", "value"), "value"))
+}
+sample()
+
+spawn {
+    loop on :change [id="mode"] {
+        sample()
+    }
+}
+
+await :click [id="run"]
+loop {
+    ;; another click starts over: a request in course is cancelled
+    watching :click [id="run"] {
+        web.set("status", "text", "compiling...")
+        val r = await web.fetch("/run?mode=" ++ web.get("mode", "value"),
+            [method="POST", body=web.get("code", "value")])
+        web.set("status", "text", "")
+        web.set("log", "class.error", !r.ok)
+        if r.ok {
+            web.set("log", "text", "")
+            web.set("runner", "src", r.text)
+        } else {
+            web.set("log", "text", r.text)
+        }
+        await(false)
+    }
+}

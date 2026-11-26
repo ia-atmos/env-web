@@ -1,29 +1,92 @@
 #!/bin/sh
-# Builds a page from an Atmos program, with `web.atm` included:
+# Builds a page from an Atmos program:
 #
-#   atmos-web <prog.atm> [<outdir>]
+#   atmos-web [--pico] <prog.atm> [<outdir>] [-- <flags of emcc> ...]
 #
 # The result is <outdir>/<prog>.html (with its .js and .wasm), to be
-# served over HTTP. <outdir> is `out` by default. If <prog>.html exists
-# beside the program, it is the page (it must have the line
-# `{{{ SCRIPT }}}` where the program is loaded); otherwise the page is
-# empty, and the program creates its elements.
+# served over HTTP. <outdir> is `out` by default.
+#
+# With no option, the program runs over the DOM, with `web.atm` included.
+# If <prog>.html exists beside the program, it is the page (it must have
+# the line `{{{ SCRIPT }}}` where the program is loaded); otherwise the
+# page is empty, and the program creates its elements.
+#
+# With `--pico`, the program runs over pico, on a canvas, with `pico.atm`
+# included, from a checkout of https://github.com/ia-atmos/env-pico in
+# PICO (`../env-pico` by default), which is built here for the browser
+# (its `__EMSCRIPTEN__` parts). The files that the program reads go in
+# the flags of emcc, as in `-- --preload-file imgs`.
 #
 # It needs `emcc` (Emscripten) in the PATH and a built checkout of
 # https://github.com/ia-atmos/lang in ATMOS (`../lang` by default).
 set -e
 HERE=$(cd "$(dirname "$0")" && pwd)
 ATMOS=${ATMOS:-$HERE/../lang}
-[ -n "$1" ] || { echo "usage: atmos-web <prog.atm> [<outdir>]" >&2; exit 1; }
+PICO=${PICO:-$HERE/../env-pico}
+MODE=web
+if [ "$1" = "--pico" ]; then
+    MODE=pico
+    shift
+fi
+[ -n "$1" ] || { echo "usage: atmos-web [--pico] <prog.atm> [<outdir>] [-- <flags of emcc> ...]" >&2; exit 1; }
 [ -x "$ATMOS/atmos" ] || { echo "atmos-web : compiler not found : $ATMOS/atmos (set ATMOS=/path/to/lang)" >&2; exit 1; }
 command -v emcc >/dev/null || { echo "atmos-web : emcc not found (Emscripten)" >&2; exit 1; }
 SRC=$1
-OUT=${2:-out}
+shift
+OUT=out
+if [ -n "$1" ] && [ "$1" != "--" ]; then
+    OUT=$1
+    shift
+fi
+[ "$1" = "--" ] && shift
 NAME=$(basename "$SRC" .atm)
-PAGE=$(dirname "$SRC")/$NAME.html
-[ -f "$PAGE" ] || PAGE=$HERE/page.html
 mkdir -p "$OUT"
-"$ATMOS/atmos" -c -e "$HERE/web.atm" "$SRC" > "$OUT/$NAME.c"
+OUT=$(cd "$OUT" && pwd)
+OPT=${ATMOS_CFLAGS:--O2}
+
+# The runtime and pico are compiled once per optimization level, into
+# .cache/, and again when one of their sources changes.
+CACHE=$HERE/.cache/$(echo "$OPT" | tr -c 'A-Za-z0-9\n' '_')
+mkdir -p "$CACHE"
+
+# lib <name> <flags> <sources ...>: builds $CACHE/<name>.a if it is older
+# than a source
+lib () {
+    L=$CACHE/$1.a
+    F=$2
+    shift 2
+    if [ -f "$L" ] && [ -z "$(find "$@" "$ATMOS/rt" -newer "$L" -name '*.[ch]' | head -1)" ]; then
+        return
+    fi
+    D=$CACHE/$(basename "$L" .a).o
+    rm -rf "$D" "$L"
+    mkdir -p "$D"
+    for f in "$@"; do
+        emcc $OPT $F -c "$f" -o "$D/$(basename "$f" .c).o"
+    done
+    emar rcs "$L" "$D"/*.o
+}
+
+SDL='-sUSE_SDL=2 -sUSE_SDL_IMAGE=2 -sUSE_SDL_TTF=2 -sUSE_SDL_MIXER=2 -sUSE_SDL_GFX=2'
 RT=$(ls "$ATMOS"/rt/*.c | grep -v '/main\.c$')
-emcc ${ATMOS_CFLAGS:--O2} -I"$ATMOS/rt" "$OUT/$NAME.c" $RT "$ATMOS/rt/main.c" \
-    -sALLOW_MEMORY_GROWTH -sEXPORTED_FUNCTIONS=_main,_malloc,_free --shell-file "$PAGE" -o "$OUT/$NAME.html"
+lib rt "-I$ATMOS/rt" $RT
+
+if [ "$MODE" = "web" ]; then
+    PAGE=$(dirname "$SRC")/$NAME.html
+    [ -f "$PAGE" ] || PAGE=$HERE/page.html
+    "$ATMOS/atmos" -c -e "$HERE/web.atm" "$SRC" > "$OUT/$NAME.c"
+    emcc $OPT -I"$ATMOS/rt" "$OUT/$NAME.c" "$ATMOS/rt/main.c" "$CACHE/rt.a" \
+        -sALLOW_MEMORY_GROWTH -sEXPORTED_FUNCTIONS=_main,_malloc,_free \
+        --shell-file "$PAGE" "$@" -o "$OUT/$NAME.html"
+else
+    [ -f "$PICO/pico.atm" ] || { echo "atmos-web : pico not found : $PICO/pico.atm (set PICO=/path/to/env-pico)" >&2; exit 1; }
+    lib pico "-I$PICO/c/src $SDL" "$PICO"/c/src/*.c
+    # the program is compiled in its directory: its files are relative to it
+    cd "$(dirname "$SRC")"
+    "$ATMOS/atmos" -c -e "$PICO/pico.atm" "$NAME.atm" > "$OUT/$NAME.c"
+    # pico.atm has a `main` of its own, with a loop that blocks: Asyncify
+    emcc $OPT -I"$ATMOS/rt" -I"$PICO/c/src" "$OUT/$NAME.c" "$CACHE/pico.a" "$CACHE/rt.a" \
+        $SDL '-sSDL2_IMAGE_FORMATS=["png","gif"]' \
+        -sASYNCIFY -sALLOW_MEMORY_GROWTH \
+        --shell-file "$HERE/page-pico.html" "$@" -o "$OUT/$NAME.html"
+fi

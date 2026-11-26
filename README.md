@@ -31,7 +31,10 @@ web.set("msg", "text", "stopped")
 ```
 
 - [`web.atm`](web.atm): the environment (its header documents the API).
-- [`atmos-web`](atmos-web): builds a page from a program.
+- [`atmos-web`](atmos-web): builds a page from a program, over the DOM
+  or, with `--pico`, over [pico][pico] on a canvas.
+- [`ide/`](ide/): a simple IDE in the browser, written in Atmos: an
+  editor, the two modes, and Run.
 - [`exs/`](exs/): `counter` (the program above, over `counter.html`) and
   `threads` (a tree of threads that the program creates).
 - [`tst/`](tst/): the tests, in Chromium (`make tests`).
@@ -40,6 +43,7 @@ Status: experimental. The plan is in [`.claude/plans/`](.claude/plans/).
 
 [atmos]: https://github.com/ia-atmos/lang
 [emcc]:  https://emscripten.org/
+[pico]:  https://github.com/ia-atmos/env-pico
 
 # Run
 
@@ -56,6 +60,31 @@ make -C lang
 If `<prog>.html` exists beside the program, it is the page, with the
 line `{{{ SCRIPT }}}` where the program is loaded. Otherwise the page is
 empty, and the program creates its elements with `web.new`.
+
+# Pico
+
+`atmos-web --pico` builds a program of [pico][pico] for the browser,
+from a checkout of `env-pico` in `../env-pico` (or `PICO=<dir>`), which
+is not copied here. The files that the program reads are preloaded:
+
+```
+cd ../env-pico/exs/rocks
+../../../env-web/atmos-web --pico main.atm out -- \
+    --preload-file imgs --preload-file snds --preload-file tiny.ttf
+```
+
+# IDE
+
+```
+python3 ide/serve.py        # then open http://127.0.0.1:8080/
+```
+
+An editor, a choice between the two modes, and a button Run, which sends
+the program to `serve.py`: it compiles it (`atmos-web`) and answers with
+the address of its page, shown beside the editor, or with the errors of
+the compiler. The editor itself is an Atmos program over the DOM
+([`ide/ide.atm`](ide/ide.atm)). The server runs a compiler on what it
+receives, so it only listens on the machine where it runs.
 
 # Interface
 
