@@ -27,8 +27,9 @@ All in `ia-atmos/env-web`, `main` 2150f5e or later:
 | The old plan of the DOM (Lua over Wasmoon, Mar/2026) | `atmos-lang/web` `.claude/plans/dom.md` |
 | The same seven tasks in a desktop toolkit, with a study against C with callbacks | `ia-atmos/env-iup` `exs/7guis/`, `doc/study.md` |
 
-Sizes measured: the counter is 22 lines of Atmos; its page is 230 KB of
-WebAssembly and 60 KB of JS (`-O2`, the whole runtime).
+Sizes measured: the counter is 18 lines of Atmos (43 for the threads),
+with no blank lines nor comments; its page is 237 KB of WebAssembly and
+64 KB of JS (`-O2`, the whole runtime).
 
 ## 3. A possible thesis
 
@@ -93,7 +94,7 @@ to start; where a bug of lifetime can exist and where it cannot.
 
 ## 7. Risks
 
-- Size: the whole runtime in each page (230 KB), against a few KB of a
+- Size: the whole runtime in each page (237 KB), against a few KB of a
   hand-written page; Elm and Svelte are small here.
 - One program per page, single-threaded, no server side and no routing:
   the scope must be said.
