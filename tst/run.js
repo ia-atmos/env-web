@@ -61,6 +61,15 @@ const tests = {
         check('form: the error ends the program', await p.evaluate(() => Module.web.status), 2);
         check('form: the message', logs.some(l => l.includes('web.set : no element : nope')), true);
     },
+    fetch: async (p, logs, failed) => {
+        await p.waitForTimeout(500);
+        check('fetch: a file', await p.textContent('#a'), 'true 200 hello');
+        check('fetch: a missing file', await p.textContent('#b'), 'false 404');
+        await p.click('#cancel');
+        await p.waitForTimeout(1500);
+        check('fetch: cancelled, no answer', await p.textContent('#c'), '... (after)');
+        check('fetch: the request was aborted', failed.filter(u => u.endsWith('/slow.txt')).length, 1);
+    },
 };
 
 (async () => {
@@ -72,9 +81,11 @@ const tests = {
         const logs = [];
         p.on('console', m => logs.push(m.text()));
         p.on('pageerror', e => { logs.push('pageerror: ' + e.message); });
+        const failed = [];
+        p.on('requestfailed', r => failed.push(r.url()));
         await p.goto(URL + '/' + name + '.html');
         try {
-            await tests[name](p, logs);
+            await tests[name](p, logs, failed);
         } catch (e) {
             fails++;
             console.log('FAIL ' + name + ' : ' + e.message.split('\n')[0]);

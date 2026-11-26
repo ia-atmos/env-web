@@ -75,6 +75,7 @@ The time is emitted at each frame, so `await 1s` works as usual.
 | `web.get(id, name)` | Reads a property |
 | `web.new(tag, t)` | Creates an element and gives its id (the field `id`, or a fresh one), in the element `parent` or in the body; the other named fields are properties, the positional ones are the ids of its children |
 | `web.del(id)` | Removes an element |
+| `await web.fetch(url, t)` | A request to a server (`method`, `body` in `t`), as a task: it ends with `[ok, status, text]`, and is cancelled if the task is aborted |
 
 # Tests
 

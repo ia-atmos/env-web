@@ -53,6 +53,15 @@
 ;;                              are the ids of its children, in order,
 ;;                              which move into it, after its text
 ;;      web.del(id)             removes an element, with its children
+;;      await web.fetch(url, t) a request to a server (`fetch`), as a task
+;;                              to await: `t` may have `method` (`"GET"`
+;;                              by default) and `body` (a string). It ends
+;;                              with `[ok, status, text]`: whether the
+;;                              status is 2xx, the status (0 if the
+;;                              request failed), and the body of the
+;;                              answer (or the failure). If the task is
+;;                              aborted first, as when a `watching` around
+;;                              it ends, the request is cancelled
 ;;
 ;; A function fails with an error if the element does not exist.
 
@@ -139,7 +148,7 @@ EMSCRIPTEN_KEEPALIVE int web_event (
 // The side of the page: the listeners, the loop of frames, and the
 // helpers of the functions below, in `Module.web`.
 EM_JS(void, web_js_init, (void), {
-    const W = Module.web = { n: 0, status: 0 };
+    const W = Module.web = { n: 0, status: 0, fn: 0, fs: {} };
 
     W.put = (el, name, v) => {
         if (name === 'text') {
@@ -358,6 +367,69 @@ static const char* web_opt (AVal t, const char* k) {
     return (v.type == A_STR) ? A_STR_OF(v)->s : NULL;
 }
 
+// The answer of the request `n`: `:fetch [n, ok, status, text]`.
+EMSCRIPTEN_KEEPALIVE int web_fetched (int n, int ok, int status, const char* text) {
+    if (!atm_alive()) {
+        return 1;
+    }
+    AVal evt = a_tab();
+    AVal t   = a_strz("fetch");
+    a_tag(evt, t);
+    a_dec(t);
+    web_fld(evt, "n",      a_int(n));
+    web_fld(evt, "ok",     a_bool(ok));
+    web_fld(evt, "status", a_int(status));
+    web_fld(evt, "text",   a_strz(text));
+    AStatus st = atm_emit(evt);
+    a_dec(evt);
+    return web_status(st);
+}
+
+// Starts a request and gives its number: its answer comes as an event,
+// unless it is aborted first.
+EM_JS(int, web_js_fetch, (const char* url, const char* method, const char* body), {
+    const W = Module.web;
+    const n = ++W.fn;
+    const c = W.fs[n] = new AbortController();
+    const opts = { method: method ? UTF8ToString(method) : 'GET', signal: c.signal };
+    if (body) {
+        opts.body = UTF8ToString(body);
+    }
+    fetch(UTF8ToString(url), opts).then(
+        async (r) => ({ ok: r.ok, status: r.status, text: await r.text() }),
+        (e) => ({ ok: false, status: 0, text: String(e) })
+    ).then((x) => {
+        if (W.fs[n] !== c || W.status !== 0) {
+            return;         // aborted, or the program ended
+        }
+        delete W.fs[n];
+        const t = stringToNewUTF8(x.text);
+        W.status = _web_fetched(n, x.ok ? 1 : 0, x.status, t);
+        _web_free(t);
+    });
+    return n;
+});
+
+EM_JS(void, web_js_fetch_abort, (int n), {
+    const W = Module.web;
+    if (W.fs[n]) {
+        W.fs[n].abort();
+        delete W.fs[n];
+    }
+});
+
+static AStatus web_fetch (AVal* dst, AVal url, AVal t) {
+    if (url.type != A_STR) {
+        return a_error("web.fetch : expected url");
+    }
+    if (t.type!=A_NIL && t.type!=A_TAB) {
+        return a_error("web.fetch : expected table");
+    }
+    int n = web_js_fetch(A_STR_OF(url)->s, web_opt(t,"method"), web_opt(t,"body"));
+    a_set(dst, a_int(n));
+    return A_OK;
+}
+
 static AStatus web_new (AVal* dst, AVal tag, AVal t) {
     if (tag.type != A_STR) {
         return a_error("web.new : expected tag");
@@ -420,7 +492,20 @@ atmos.env([
     mode = [primary=true],
 ])
 
+;; A request to a server, as a task: it ends with the answer, and a
+;; request in course is cancelled when the task is aborted.
+task web_fetch (url, t) {
+    var n
+    `st = web_fetch(&$n, $url, $t);`
+    defer {
+        `web_js_fetch_abort((int)$n.u.i);`
+    }
+    val e = await :fetch [n=n]
+    [ok=e.ok, status=e.status, text=e.text]
+}
+
 val web = [
+    fetch = web_fetch,
     set = func (id, name, v) {
         `st = web_set($id, $name, $v);`
     },

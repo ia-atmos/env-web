@@ -9,7 +9,8 @@ PORT=${PORT:-8771}
 for f in "$HERE"/../exs/*.atm "$HERE"/*.atm; do
     "$HERE/../atmos-web" "$f" "$OUT" 2>&1 | grep -v '^cache:\|system_libs:' || true
 done
-(cd "$OUT" && exec python3 -m http.server "$PORT" >/dev/null 2>&1) &
+printf hello > "$OUT/data.txt"
+python3 "$HERE/serve.py" "$OUT" "$PORT" &
 SRV=$!
 trap 'kill $SRV' EXIT
 sleep 1

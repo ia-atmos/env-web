@@ -1,0 +1,20 @@
+;; A request as an await, and its cancellation by a `watching`.
+
+web.new(:p, [id="a", text="..."])
+web.new(:p, [id="b", text="..."])
+web.new(:p, [id="c", text="..."])
+web.new(:button, [id="cancel", text="cancel"])
+
+val r1 = await web.fetch("data.txt")
+web.set("a", "text", tostring(r1.ok) ++ " " ++ tostring(r1.status) ++ " " ++ r1.text)
+
+val r2 = await web.fetch("missing.txt")
+web.set("b", "text", tostring(r2.ok) ++ " " ++ tostring(r2.status))
+
+;; a slow request, that the click cancels
+watching :click [id="cancel"] {
+    val r3 = await web.fetch("slow.txt")
+    web.set("c", "text", "answered " ++ r3.text)
+}
+await 500ms
+web.set("c", "text", web.get("c", "text") ++ " (after)")
