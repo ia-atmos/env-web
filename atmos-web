@@ -1,7 +1,7 @@
 #!/bin/sh
 # Builds a page from an Atmos program:
 #
-#   atmos-web [--pico] <prog.atm> [<outdir>] [-- <flags of emcc> ...]
+#   atmos-web [--pico | --text] <prog.atm> [<outdir>] [-- <flags of emcc> ...]
 #
 # The result is <outdir>/<prog>.html (with its .js and .wasm), to be
 # served over HTTP. <outdir> is `out` by default.
@@ -17,6 +17,9 @@
 # (its `__EMSCRIPTEN__` parts). The files that the program reads go in
 # the flags of emcc, as in `-- --preload-file imgs`.
 #
+# With `--text`, the program runs with the default environment, which
+# only deals with time (`clock.atm`), and what it prints is the page.
+#
 # It needs `emcc` (Emscripten) in the PATH and a built checkout of
 # https://github.com/ia-atmos/lang in ATMOS (`../lang` by default).
 set -e
@@ -27,8 +30,11 @@ MODE=web
 if [ "$1" = "--pico" ]; then
     MODE=pico
     shift
+elif [ "$1" = "--text" ]; then
+    MODE=text
+    shift
 fi
-[ -n "$1" ] || { echo "usage: atmos-web [--pico] <prog.atm> [<outdir>] [-- <flags of emcc> ...]" >&2; exit 1; }
+[ -n "$1" ] || { echo "usage: atmos-web [--pico | --text] <prog.atm> [<outdir>] [-- <flags of emcc> ...]" >&2; exit 1; }
 [ -x "$ATMOS/atmos" ] || { echo "atmos-web : compiler not found : $ATMOS/atmos (set ATMOS=/path/to/lang)" >&2; exit 1; }
 command -v emcc >/dev/null || { echo "atmos-web : emcc not found (Emscripten)" >&2; exit 1; }
 SRC=$1
@@ -72,12 +78,21 @@ RT=$(ls "$ATMOS"/rt/*.c | grep -v '/main\.c$')
 lib rt "-I$ATMOS/rt" $RT
 
 if [ "$MODE" = "web" ]; then
-    PAGE=$(dirname "$SRC")/$NAME.html
+    # compiled in its directory: an error names the file only
+    cd "$(dirname "$SRC")"
+    PAGE=$PWD/$NAME.html
     [ -f "$PAGE" ] || PAGE=$HERE/page.html
-    "$ATMOS/atmos" -c -e "$HERE/web.atm" "$SRC" > "$OUT/$NAME.c"
+    "$ATMOS/atmos" -c -e "$HERE/web.atm" "$NAME.atm" > "$OUT/$NAME.c"
     emcc $OPT -I"$ATMOS/rt" "$OUT/$NAME.c" "$ATMOS/rt/main.c" "$CACHE/rt.a" \
         -sALLOW_MEMORY_GROWTH -sEXPORTED_FUNCTIONS=_main,_malloc,_free \
         --shell-file "$PAGE" "$@" -o "$OUT/$NAME.html"
+elif [ "$MODE" = "text" ]; then
+    # compiled in its directory: an error names the file only
+    cd "$(dirname "$SRC")"
+    "$ATMOS/atmos" -c -e "$HERE/clock.atm" "$NAME.atm" > "$OUT/$NAME.c"
+    emcc $OPT -I"$ATMOS/rt" "$OUT/$NAME.c" "$ATMOS/rt/main.c" "$CACHE/rt.a" \
+        -sALLOW_MEMORY_GROWTH \
+        --shell-file "$HERE/page-text.html" "$@" -o "$OUT/$NAME.html"
 else
     [ -f "$PICO/pico.atm" ] || { echo "atmos-web : pico not found : $PICO/pico.atm (set PICO=/path/to/env-pico)" >&2; exit 1; }
     lib pico "-I$PICO/c/src $SDL" "$PICO"/c/src/*.c

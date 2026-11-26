@@ -1,0 +1,89 @@
+;; clock.atm: the default environment of Atmos, in the browser.
+;;
+;; It only deals with time, as the default environment of the compiler:
+;; after the main chunk, it sleeps until the nearest timer and lets the
+;; time pass, and it ends the program when the main chunk ends, or when
+;; nothing can awake it. Here the sleep is a `setTimeout` of the page, and
+;; what the program prints goes to the page (see `page-text.html`).
+;;
+;; A program with only `print` and time, as those of the guide of Atmos,
+;; runs in a page with it: `atmos-web --text prog.atm`.
+
+```:prelude
+#include <stdio.h>
+#include <emscripten.h>
+
+#ifndef __EMSCRIPTEN__
+#error "clock.atm: the program must be built with Emscripten (emcc)"
+#endif
+
+// The end of the program: aborts the main chunk, dumps an error, quits.
+static void clock_end (AStatus st) {
+    if (st == A_OK) {
+        st = atm_stop();
+    }
+    fflush(stdout);
+    if (st == A_ESCAPE) {
+        st = a_escape_err();
+    }
+    if (st != A_OK) {
+        a_error_dump();
+    }
+    fflush(stdout);
+    atm_quit();
+}
+
+// The time until the nearest timer, in milliseconds: negative when the
+// program ended (it is then closed here).
+EMSCRIPTEN_KEEPALIVE double clock_next (void) {
+    if (atm_alive()) {
+        double nxt = atm_next();
+        if (nxt >= 0) {
+            fflush(stdout);
+            return nxt * A_CLOCK_US / 1000;
+        }
+    }
+    clock_end(A_OK);
+    return -1;
+}
+
+// `ms` elapsed: 1 if the program goes on.
+EMSCRIPTEN_KEEPALIVE int clock_time (double ms) {
+    AStatus st = atm_emit(a_num(ms * 1000 / A_CLOCK_US));
+    if (st != A_OK) {
+        clock_end(st);
+        return 0;
+    }
+    return 1;
+}
+
+// Starts after the main chunk returns: sleeps until the nearest timer,
+// emits at least that time, and again.
+EM_JS(void, clock_js_init, (void), {
+    const step = () => {
+        const nxt = _clock_next();
+        if (nxt < 0) {
+            if (Module.onEnd) {
+                Module.onEnd();
+            }
+            return;
+        }
+        const t0 = performance.now();
+        setTimeout(() => {
+            const dt = performance.now() - t0;
+            if (_clock_time(Math.max(dt, nxt))) {
+                step();
+            } else if (Module.onEnd) {
+                Module.onEnd();
+            }
+        }, nxt);
+    };
+    setTimeout(step, 0);
+});
+```
+
+`clock_js_init();`
+
+atmos.env([
+    mode = [primary=true],
+])

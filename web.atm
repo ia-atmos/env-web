@@ -37,7 +37,8 @@
 ;;      web.set(id, name, v)    sets a property of an element: `"text"`
 ;;                              (its text), `"class.<c>"` (the class `c`,
 ;;                              on or off), `"style.<p>"` (the CSS property
-;;                              `p`), or a property of the DOM (`"value"`,
+;;                              `p`), `"attr.<a>"` (the attribute `a` of
+;;                              the HTML), or a property of the DOM (`"value"`,
 ;;                              `"checked"`, `"open"`, `"disabled"`,
 ;;                              `"hidden"`, ...); `v` is a string, a
 ;;                              number, a boolean or nil
@@ -157,6 +158,12 @@ EM_JS(void, web_js_init, (void), {
             el.classList.toggle(name.slice(6), !!v);
         } else if (name.startsWith('style.')) {
             el.style.setProperty(name.slice(6), (v == null) ? "" : String(v));
+        } else if (name.startsWith('attr.')) {
+            if (v == null || v === false) {
+                el.removeAttribute(name.slice(5));
+            } else {
+                el.setAttribute(name.slice(5), (v === true) ? "" : String(v));
+            }
         } else {
             el[name] = v;
         }
@@ -169,6 +176,8 @@ EM_JS(void, web_js_init, (void), {
             return el.classList.contains(name.slice(6));
         } else if (name.startsWith('style.')) {
             return getComputedStyle(el).getPropertyValue(name.slice(6));
+        } else if (name.startsWith('attr.')) {
+            return el.getAttribute(name.slice(5));
         } else {
             return el[name];
         }

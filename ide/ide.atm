@@ -38,6 +38,7 @@ task Guide () {
         web.set("text", "innerHTML", (await web.fetch(url ++ "/text")).text)
         web.set("code", "value",     (await web.fetch(url ++ "/code")).text)
         web.set("text", "scrollTop", 0)
+        web.set("text", "attr.data-step", tostring(i))    ;; the step shown
 
         val e = await <:change [id="step"] || :click [id="prev"] || :click [id="next"] || :click [id="reset"]>
         match e.id {

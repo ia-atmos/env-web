@@ -31,8 +31,10 @@ web.set("msg", "text", "stopped")
 ```
 
 - [`web.atm`](web.atm): the environment (its header documents the API).
-- [`atmos-web`](atmos-web): builds a page from a program, over the DOM
-  or, with `--pico`, over [pico][pico] on a canvas.
+- [`atmos-web`](atmos-web): builds a page from a program, over the DOM;
+  with `--pico`, over [pico][pico] on a canvas; with `--text`, with only
+  time and `print` ([`clock.atm`](clock.atm), the default environment
+  of Atmos in the browser).
 - [`ide/`](ide/): a simple IDE in the browser, written in Atmos: an
   editor, the two modes, and Run.
 - [`exs/`](exs/): `counter` (the program above, over `counter.html`) and
@@ -84,8 +86,10 @@ the program to `serve.py`: it compiles it (`atmos-web`) and answers with
 the address of its page, shown beside the editor, or with the errors of
 the compiler. With a guide, at `/guide/<name>`, it also shows the steps
 of the guide, each with its text, its program and two exercises
-([`guides/birds.md`](guides/birds.md): the 11 steps of the tutorial of
-pico, at http://127.0.0.1:8080/guide/birds). The editor itself is an
+([`guides/`](guides/)): `/guide/atmos`, the 21 examples of the guide of
+the compiler (`lang/doc/guide.md`, read from the checkout in `ATMOS`),
+and `/guide/birds`, the 11 steps of the tutorial of pico. A guide here
+only adds what its source lacks: the exercises, and for birds the text. The editor itself is an
 Atmos program over the DOM
 ([`ide/ide.atm`](ide/ide.atm)). The server runs a compiler on what it
 receives, so it only listens on the machine where it runs.
@@ -104,7 +108,7 @@ The time is emitted at each frame, so `await 1s` works as usual.
 
 | Function | |
 |----------|-|
-| `web.set(id, name, v)` | Sets a property: `"text"`, `"class.<c>"`, `"style.<p>"`, or a property of the DOM (`"value"`, `"checked"`, `"open"`, `"hidden"`, ...) |
+| `web.set(id, name, v)` | Sets a property: `"text"`, `"class.<c>"`, `"style.<p>"`, `"attr.<a>"`, or a property of the DOM (`"value"`, `"checked"`, `"open"`, `"hidden"`, ...) |
 | `web.get(id, name)` | Reads a property |
 | `web.new(tag, t)` | Creates an element and gives its id (the field `id`, or a fresh one), in the element `parent` or in the body; the other named fields are properties, the positional ones are the ids of its children |
 | `web.del(id)` | Removes an element |

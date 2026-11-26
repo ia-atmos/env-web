@@ -5,7 +5,7 @@
 # serves it at http://127.0.0.1:<port>/, and compiles each program that
 # the IDE sends:
 #
-#   POST /run?mode=web|pico     the body is the program
+#   POST /run?mode=web|pico|text        the body is the program
 #       200: the address of its page (under /run/)
 #       400: the errors of the compiler
 #
@@ -42,40 +42,64 @@ ROOTS  = {
     'WEB':   os.path.join(HERE, '..'),
 }
 
-def inline (s):
+def inline (s, link=''):
     s = html.escape(s, quote=False)
     s = re.sub(r'`([^`]+)`', r'<code>\1</code>', s)
     s = re.sub(r'\*\*([^*]+)\*\*', r'<b>\1</b>', s)
-    s = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" target="_blank">\1</a>', s)
-    return s
+    s = re.sub(r'\*([^*]+)\*', r'<i>\1</i>', s)
+    def a (m):
+        url = m.group(2)
+        if not re.match(r'[a-z]+:', url):
+            url = link + url        # relative to the source of the guide
+        return '<a href="%s" target="_blank">%s</a>' % (url, m.group(1))
+    return re.sub(r'\[([^\]]+)\]\(([^)]+)\)', a, s)
 
-# A small part of Markdown: paragraphs, `###` titles, numbered lists.
-def md (text):
+# A small part of Markdown: paragraphs, titles, lists, fenced blocks.
+def md (text, link=''):
     out = []
-    for blk in re.split(r'\n\s*\n', text.strip()):
-        blk = blk.strip()
-        if not blk:
+    parts = re.split(r'(?ms)^```[^\n]*\n(.*?)^```[ \t]*$', text)
+    for n, part in enumerate(parts):
+        if n % 2 == 1:
+            out.append('<pre>%s</pre>' % html.escape(part, quote=False))
             continue
-        if blk.startswith('### '):
-            out.append('<h3>%s</h3>' % inline(blk[4:]))
-        elif re.match(r'\d+\. ', blk):
-            items = re.split(r'\n(?=\d+\. )', blk)
-            out.append('<ol>%s</ol>' % ''.join(
-                '<li>%s</li>' % inline(re.sub(r'^\d+\. ', '', i).replace('\n', ' '))
-                for i in items))
-        else:
-            out.append('<p>%s</p>' % inline(blk.replace('\n', ' ')))
+        for blk in re.split(r'\n\s*\n', part.strip()):
+            blk = blk.strip()
+            if not blk:
+                continue
+            m = re.match(r'(#+) (.*)', blk)
+            if m:
+                out.append('<h3>%s</h3>' % inline(m.group(2), link))
+            elif re.match(r'(\d+\.|-) ', blk):
+                tag = 'ol' if blk[0].isdigit() else 'ul'
+                items = re.split(r'\n(?=\s*(?:\d+\.|-) )', blk)
+                out.append('<%s>%s</%s>' % (tag, ''.join(
+                    '<li>%s</li>' % inline(re.sub(r'^\s*(\d+\.|-) ', '', i).replace('\n', ' '), link)
+                    for i in items), tag))
+            else:
+                out.append('<p>%s</p>' % inline(blk.replace('\n', ' '), link))
     return '\n'.join(out)
 
-# A guide: lines `@key value` (title, mode, base, preload), a text, and
-# the steps, each from a line `# <title>` with a line `@code <file>`.
+def root (spec):
+    r, _, sub = spec.strip().partition(':')
+    return os.path.join(ROOTS[r], sub)
+
+# A guide: lines `@key value` (title, mode, base, preload, source, link),
+# a text, and its steps.
+#
+# Without `@source`, each step is in the file: a line `# <title>`, a
+# line `@code <file>`, its text and its exercises.
+#
+# With `@source <file>`, the text and the programs are those of that
+# file, one step for each of its examples (a marker `<!-- <dir>/NAME.atm
+# -->`, a fenced block with the program, `Output:`, a fenced block), and
+# the file of the guide only has the exercises, under `# NAME`.
 def guide (name):
     if not re.fullmatch(r'[a-z0-9-]+', name):
         return None
     path = os.path.join(GUIDES, name + '.md')
     if not os.path.exists(path):
         return None
-    g = { 'title': name, 'mode': 'web', 'base': None, 'preload': [], 'steps': [] }
+    g = { 'title': name, 'mode': 'web', 'base': None, 'preload': [], 'steps': [], 'link': '' }
     intro, cur = [], None
     for line in open(path, encoding='utf-8').read().split('\n'):
         m = re.match(r'@(\w+)\s+(.*)', line)
@@ -86,17 +110,65 @@ def guide (name):
             cur['code'] = m.group(2).strip()
         elif m and m.group(1) == 'preload':
             g['preload'].append(m.group(2).strip())
-        elif m and m.group(1) == 'base':
-            root, _, sub = m.group(2).strip().partition(':')
-            g['base'] = os.path.join(ROOTS[root], sub)
+        elif m and m.group(1) in ('base', 'source'):
+            g[m.group(1)] = root(m.group(2))
         elif m:
             g[m.group(1)] = m.group(2).strip()
         elif cur is None:
             intro.append(line)
         else:
             cur['text'].append(line)
-    g['intro'] = '\n'.join(intro)
+    g['intro'] = md('\n'.join(intro))
+    for step in g['steps']:
+        step['html'] = md('\n'.join(step['text']))
+    if 'source' in g:
+        sourced(g)
     return g
+
+# The steps of a guide from its source: the text before an example leads
+# to it, and the text after its output, up to the next title or to the
+# paragraph that introduces the next example (it ends with a colon), is
+# about it.
+def sourced (g):
+    exs = { s['title']: s['html'] for s in g['steps'] }
+    src = open(g['source'], encoding='utf-8').read()
+    src = src[src.index('\n# 1.'):]         # after the table of contents
+    mark = re.compile(r'(?ms)^<!-- \S*?([\w-]+)\.atm -->\s*^```\n(.*?)^```\s*^Output:\s*^```\n(.*?)^```[ \t]*$')
+    steps, pos, lead, title, seen = [], 0, '', '', {}
+    ms = list(mark.finditer(src))
+    for i, m in enumerate(ms):
+        lead += src[pos:m.start()]
+        hs = re.findall(r'(?m)^#+ (.*)$', lead)
+        if hs:
+            title = hs[-1]
+        seen[title] = seen.get(title, 0) + 1
+        end = ms[i+1].start() if i+1 < len(ms) else len(src)
+        rest = src[m.end():end]
+        h = re.search(r'(?m)^#+ ', rest)
+        ending = ''
+        if i+1 == len(ms):                          # the last one keeps the ending
+            trail, nxt = (rest[:h.start()], '') if h else (rest, '')
+            ending = rest[h.start():] if h else ''
+        elif h:
+            trail, nxt = rest[:h.start()], rest[h.start():]
+        else:
+            # same section: the next example starts at the first paragraph
+            # that ends with a colon
+            blks = re.split(r'(\n\s*\n)', rest)
+            k = next((j for j in range(0, len(blks), 2) if blks[j].rstrip().endswith(':')), len(blks))
+            trail, nxt = ''.join(blks[:k]), ''.join(blks[k:])
+        steps.append({
+            'title': title if seen[title] == 1 else '%s (%d)' % (title, seen[title]),
+            'code':  m.group(1) + '.atm',
+            # the title of the step is shown apart
+            'html':  md(re.sub(r'(?m)^#+ %s\s*$' % re.escape(title), '', lead), g['link'])
+                     + '\n<h3>Output</h3>\n<pre>%s</pre>\n' % html.escape(m.group(3), quote=False)
+                     + md(trail, g['link'])
+                     + ('\n<h3>Exercises</h3>\n' + exs[m.group(1)] if m.group(1) in exs else '')
+                     + md(ending, g['link']),
+        })
+        pos, lead = end, nxt
+    g['steps'] = steps
 
 def build (args):
     p = subprocess.run([TOOL] + args, capture_output=True, text=True, timeout=300)
@@ -136,9 +208,9 @@ class Handler (SimpleHTTPRequestHandler):
             step = g['steps'][i-1]
             if m.group(4) == 'code':
                 return self.answer(200, open(os.path.join(g['base'], step['code']), encoding='utf-8').read())
-            text = '<h2>%s</h2>\n%s' % (inline(step['title']), md('\n'.join(step['text'])))
+            text = '<h2>%s</h2>\n%s' % (inline(step['title']), step['html'])
             if i == 1:
-                text = md(g['intro']) + '\n' + text
+                text = g['intro'] + '\n' + text
             return self.answer(200, text)
         super().do_GET()
 
@@ -153,7 +225,7 @@ class Handler (SimpleHTTPRequestHandler):
     def do_POST (self):
         url = urlparse(self.path)
         mode = parse_qs(url.query).get('mode', ['web'])[0]
-        if url.path != '/run' or mode not in ('web', 'pico'):
+        if url.path != '/run' or mode not in ('web', 'pico', 'text'):
             return self.answer(404, 'not found')
         src = self.rfile.read(int(self.headers.get('Content-Length', 0)))
         g = guide(parse_qs(url.query).get('guide', [''])[0])
@@ -163,7 +235,7 @@ class Handler (SimpleHTTPRequestHandler):
             os.makedirs(dir, exist_ok=True)
             with open(os.path.join(dir, 'main.atm'), 'wb') as f:
                 f.write(src)
-            flags = ['--pico'] if mode == 'pico' else []
+            flags = { 'pico': ['--pico'], 'text': ['--text'], 'web': [] }[mode]
             extra = []
             if g and g['preload']:
                 # the files of the guide, beside the program

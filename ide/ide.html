@@ -7,6 +7,7 @@
   #text { display: none; padding: 0 12px; overflow: auto; border-right: 1px solid #ccc; font-size: 14px; line-height: 1.4; }
   body.guide #text { display: block; }
   #text code { background: #eee; padding: 0 2px; }
+  #text pre { background: #f4f4f4; padding: 6px; overflow: auto; font-size: 12px; }
   .guide-only { display: none; }
   body.guide .guide-only { display: inline; }
   #bar { grid-column: 1 / -1; padding: 6px 10px; background: #eee; border-bottom: 1px solid #ccc; }
@@ -23,6 +24,7 @@
   <select id="mode">
     <option value="web">web (the DOM)</option>
     <option value="pico">pico (graphics)</option>
+    <option value="text">text (print and time)</option>
   </select>
   <span class="guide-only">
     <b id="title"></b>
@@ -61,6 +63,15 @@ loop on :click [id="inc"] {
     set n += 1
     web.set("count", "text", " " ++ tostring(n))
 }
+</textarea>
+<textarea class="sample" id="sample-text">;; Only `print` and time.
+
+print "Counts 3 seconds:"
+loop i in 3 {
+    await 1s
+    print(i + 1)
+}
+print "done"
 </textarea>
 <textarea class="sample" id="sample-pico">;; pico: click on the picture first, then press a key to end.
 
