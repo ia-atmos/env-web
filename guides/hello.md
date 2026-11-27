@@ -6,7 +6,7 @@
 
 @code hello.atm
 
-During 5 seconds, the program counts a tick every second, and then
+During 5 seconds, the program counts endless ticks, one per second, and then
 prints `Bye!`. Click **Run** to see it.
 
 `loop i` repeats its body forever, with `i` counting from 0: it prints

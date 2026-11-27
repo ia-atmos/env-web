@@ -99,3 +99,4 @@ Items put to the author are local to this session (`#1`, `#2`, ...;
 | 52 | The run of Published failed at each push | it ran before the publish ended, then passed after it: the push trigger removed (after each publish, daily, by hand) |
 | 54 | The landing, wording | the author: `"s..."` in the countdown; the caption back to the short form ("During five seconds, counts down every second."); Céu: "Strict semantics: synchronous, deterministic, and bounded."; Atmos: "Features tasks, pools, and lexical pins."; "life cycles" |
 | 55 | The example, again | the author: count up forever (`loop i`, `print("Tick " ++ i)`, `++` takes a number with no `tostring`), Tick 0 to 4, then `Bye!`; caption "During 5 seconds, counts a tick every second." |
+| 57 | The caption of the example | the author: c, "During 5 seconds, counts endless ticks, one per second." |
