@@ -20,7 +20,10 @@
   summary { cursor: pointer; font-size: 1.5em; font-weight: bold; margin: .8em 0; }
   h3    { font-size: 1em; margin-bottom: .2em; }
   .pubs li { margin-bottom: .3em; }
-  .badges img { vertical-align: middle; margin-right: .3em; }
+  .two h2 a { color: inherit; text-decoration: none; }
+  .go a { margin-right: 1em; }
+  .badges { font-size: .9em; color: #666; }
+  .badges img { vertical-align: middle; margin-left: .3em; height: 20px; }
   footer { margin-top: 2em; border-top: 1px solid #ccc; padding-top: 1em; }
   footer img { height: 50px; margin-right: 1.5em; vertical-align: middle; }
   a { color: #0645ad; }
@@ -30,10 +33,6 @@
 
 <h1>Structured Reactive Concurrency</h1>
 <p class="sub">Programming languages for reactive systems: games, interfaces, embedded devices.</p>
-<p class="badges">
-<a href="https://github.com/ia-atmos/env-web/actions/workflows/tests.yml"><img src="https://github.com/ia-atmos/env-web/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
-<a href="https://github.com/ia-atmos/env-web/actions/workflows/published.yml"><img src="https://github.com/ia-atmos/env-web/actions/workflows/published.yml/badge.svg" alt="Published"></a>
-</p>
 
 <p>
 A reactive program spends its life waiting: for a key, a click, a timer, a
@@ -47,17 +46,21 @@ and no manual cleanup.
 <div class="two">
   <div>
     <a href="atmos/"><img src="imgs/atmos-logo.png" alt="Atmos"></a>
-    <h2>Atmos <span class="tag" style="color:#080">active</span></h2>
+    <h2><a href="atmos/">Atmos</a> <span class="tag" style="color:#080">active</span></h2>
     <p>The current language. Tasks, events and pools with lexical scope.
        Compiles to C, and runs in the browser.</p>
-    <p><a href="atmos/"><b>Atmos &rarr;</b></a></p>
+    <p class="go"><a href="atmos/"><b>Site &rarr;</b></a>
+       <a href="atmos/guide/hello/">Tutorial</a>
+       <a href="https://github.com/ia-atmos">GitHub</a></p>
   </div>
   <div>
     <a href="ceu/"><img src="imgs/ceu.png" alt="Céu"></a>
-    <h2>Céu <span class="tag" style="color:#888">research</span></h2>
+    <h2><a href="ceu/">Céu</a> <span class="tag" style="color:#888">research</span></h2>
     <p>The original language, since 2011: <i>Structured Synchronous Reactive
        Programming</i>. Arduino, wireless sensor networks, games, multimedia.</p>
-    <p><a href="ceu/"><b>Céu &rarr;</b></a></p>
+    <p class="go"><a href="ceu/"><b>Site &rarr;</b></a>
+       <a href="ceu/try.php">Tutorial</a>
+       <a href="https://github.com/ceu-lang">GitHub</a></p>
   </div>
 </div>
 
@@ -71,7 +74,8 @@ and no manual cleanup.
 <img src="imgs/atmos-hello.gif" alt="the program running: Hello World! four times, then the program ends">
 </div>
 <p>During 5 seconds, prints <code>Hello World!</code> every second.</p>
-<p><a class="try" href="atmos/guide/hello/"><b>Try it in the browser &rarr;</b></a></p>
+<p><a class="try" href="atmos/guide/hello/"><b>Try it in the browser &rarr;</b></a>
+   &nbsp; <a href="atmos/">More about Atmos</a></p>
 
 <h2>Features</h2>
 <ul>
@@ -85,8 +89,6 @@ and no manual cleanup.
 <h2>Contact</h2>
 <ul>
   <li><a href="https://groups.google.com/g/ceu-lang">Mailing list</a> (Céu &amp; Atmos)</li>
-  <li>GitHub: <a href="https://github.com/ia-atmos">ia-atmos</a> (Atmos),
-      <a href="https://github.com/ceu-lang">ceu-lang</a> (Céu)</li>
 </ul>
 
 <details id="academic-papers">
@@ -135,6 +137,11 @@ and no manual cleanup.
 </details>
 
 <footer>
+  <p class="badges">This site:
+  <a href="https://github.com/ia-atmos/env-web">source</a>
+  <a href="https://github.com/ia-atmos/env-web/actions/workflows/tests.yml"><img src="https://github.com/ia-atmos/env-web/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
+  <a href="https://github.com/ia-atmos/env-web/actions/workflows/published.yml"><img src="https://github.com/ia-atmos/env-web/actions/workflows/published.yml/badge.svg" alt="Published"></a>
+  </p>
   <a href="http://www.lua.inf.puc-rio.br/"><img src="imgs/lablua.png" alt="LabLua, PUC-Rio"></a>
   <a href="https://www.uerj.br/"><img src="imgs/uerj.gif" alt="UERJ"></a>
 </footer>
