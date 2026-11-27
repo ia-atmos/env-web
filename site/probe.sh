@@ -140,7 +140,10 @@ say "the compiler of Atmos (git clone, make)"
 try make -C lang CC="${CC:-cc}" atmos
 if [ -x lang/atmos ]; then
     echo 'print "hello"' > hello.atm
-    try lang/atmos hello.atm
+    # `atmos prog.atm` builds in /tmp and runs from there (it fails where
+    # /tmp is noexec, status 127); building to a file in $HOME does not
+    try lang/atmos -o hello hello.atm
+    try ./hello
 fi
 
 say "Emscripten (emsdk, about 1 GB)"
@@ -150,7 +153,9 @@ if [ -d emsdk ]; then
     (cd emsdk && $NICE ./emsdk install latest >install.log 2>&1 && ./emsdk activate latest >>install.log 2>&1)
     echo "emsdk install/activate: status $? in $(( $(date +%s) - T0 )) s (log: $D/emsdk/install.log)"
     tail -2 emsdk/install.log
-    . ./emsdk/emsdk_env.sh >/dev/null 2>&1
+    # what emsdk_env.sh sets (it does not work from a plain `sh`)
+    export EMSDK="$D/emsdk" EM_CONFIG="$D/emsdk/.emscripten"
+    export PATH="$D/emsdk/upstream/emscripten:$D/emsdk/upstream/bin:$PATH"
     try emcc --version
 fi
 du -sh "$D" 2>/dev/null
