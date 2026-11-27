@@ -10,8 +10,9 @@
   h1    { font-size: 1.6em; margin-bottom: 0; }
   .sub  { color: #666; margin-top: .2em; font-size: .85em; }
   .two  { display: flex; flex-wrap: wrap; gap: 1em; }
-  .two > div { flex: 1 1 18em; border: 1px solid #ccc; padding: 0 1em 1em; }
-  .top  { float: right; margin: 1.2em 0 0 1em; }
+  .two > div { flex: 1 1 18em; border: 1px solid #ccc; padding: 0 1em 1em; display: flex; flex-direction: column; }
+  .btn  { margin-top: auto; text-align: center; }
+  .two h2 { margin-bottom: 0; }
   .two h2 img { height: 32px; float: right; }
   .tag  { font-size: .75em; padding: 1px 6px; border: 1px solid; border-radius: 3px; vertical-align: middle; }
   .ex   { display: flex; flex-wrap: wrap; gap: 1em; align-items: flex-start; }
@@ -32,7 +33,6 @@
 </head>
 <body>
 
-<a class="try top" href="atmos/guide/hello/"><b>Try Atmos online &rarr;</b></a>
 <h1>Structured Reactive Concurrency</h1>
 <p class="sub">Programming languages for reactive systems, such as games, interfaces and firmware.</p>
 
@@ -41,13 +41,13 @@
     <h2><a href="atmos/"><img src="imgs/atmos-logo.png" alt="Atmos"></a>Atmos <span class="tag" style="color:#080">active</span></h2>
     <p>The current language. Features tasks, pools, and lexical pins. Targets games and interfaces. Compiles to C and also
        runs in the browser.</p>
-    <p><a href="atmos/"><b>Atmos &rarr;</b></a></p>
+    <p class="btn"><a class="try" href="atmos/guide/hello/"><b>Try Atmos online &rarr;</b></a></p>
   </div>
   <div>
     <h2><a href="ceu/"><img src="imgs/ceu.png" alt="Céu"></a>Céu <span class="tag" style="color:#888">research</span></h2>
     <p>The original language. Strict semantics: synchronous, deterministic, and
        bounded. Targets embedded systems with a small footprint.</p>
-    <p><a href="ceu/"><b>Céu &rarr;</b></a></p>
+    <p class="btn"><a class="try" href="ceu/"><b>Old site &rarr;</b></a></p>
   </div>
 </div>
 
