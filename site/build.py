@@ -3,7 +3,7 @@
 #
 #   <outdir>/index.html                  the landing page (site/index.html)
 #   <outdir>/imgs/, pdfs/               its images and papers
-#   <outdir>/atmos/index.html            the page of Atmos
+#   <outdir>/atmos/index.html            sends to github.com/ia-atmos/lang
 #   <outdir>/atmos/ide.{html,js,wasm}    the player (ide/ide.atm)
 #   <outdir>/atmos/guide/<name>/         the player for a guide
 #   <outdir>/atmos/g/<name>/info         its title, mode and number of steps

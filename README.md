@@ -133,7 +133,7 @@ The time is emitted at each frame, so `await 1s` works as usual.
 
 The site at https://ceu-lang.org/new/ is made here:
 
-- [`site/`](site/): the landing page, the page of Atmos, images and
+- [`site/`](site/): the landing page (`atmos/` only sends to GitHub), images and
   papers; `site/build.py` builds the whole site, with every step of the
   guides already compiled, so it is only static files.
 - [`guides/`](guides/): the text and the exercises of each guide; the

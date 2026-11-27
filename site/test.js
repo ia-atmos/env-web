@@ -107,16 +107,17 @@ const check = (name, got, exp) => {
     check('birds: the canvas is near the top', box.y - vp.y >= 4 && box.y - vp.y <= 20, true);
 
     // the icon, on every kind of page
-    for (const page of ['/', '/atmos/', '/atmos/guide/hello/']) {
+    for (const page of ['/', '/atmos/guide/hello/']) {
         await p.goto(BASE + page);
         const href = await p.evaluate(() => { const l = document.querySelector('link[rel~=icon]'); return l && l.href; });
         const r = href && await p.request.get(href);
         check(page + ': the icon', [!!href, r && r.status()], [true, 200]);
     }
+    check('/atmos/ goes to GitHub', (await (await p.request.get(BASE + '/atmos/')).text()).includes('url=https://github.com/ia-atmos/lang'), true);
     check('/favicon.ico', (await p.request.get(BASE + '/favicon.ico')).status(), 200);
 
     // the landing page and the page of Atmos: every local link and image exists
-    for (const page of ['/', '/atmos/']) {
+    for (const page of ['/']) {
         await p.goto(BASE + page);
         const urls = await p.evaluate(() => [...document.querySelectorAll('a[href], img[src], link[rel~=icon]')]
             .map(e => e.href || e.src).filter(u => u.startsWith(location.origin) && !u.includes('/ceu/')));
