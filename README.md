@@ -144,6 +144,14 @@ The site at https://ceu-lang.org/new/ is made here:
   server, at http://127.0.0.1:8080/ (only on the machine: it compiles
   what it receives).
 
+To see the whole site on your machine, as it is published (without the
+pages of Céu), with the tools of "Use it in your project" and a checkout
+of `env-pico` in `../env-pico`:
+
+```
+make site           # then open http://127.0.0.1:8091/
+```
+
 The workflows: **Tests** builds the site and runs the tests in Chromium
 at each push; **Publish the site** publishes it, by hand (Actions, Run
 workflow); **Published** says whether the published site is the current
