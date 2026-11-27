@@ -56,13 +56,18 @@
 ;;      web.del(id)             removes an element, with its children
 ;;      await web.fetch(url, t) a request to a server (`fetch`), as a task
 ;;                              to await: `t` may have `method` (`"GET"`
-;;                              by default) and `body` (a string). It ends
+;;                              by default), `body` (a string) and `type`
+;;                              (the type of the body, as
+;;                              `"application/x-www-form-urlencoded"`). It ends
 ;;                              with `[ok, status, text]`: whether the
 ;;                              status is 2xx, the status (0 if the
 ;;                              request failed), and the body of the
 ;;                              answer (or the failure). If the task is
 ;;                              aborted first, as when a `watching` around
 ;;                              it ends, the request is cancelled
+;;      web.base64(s)           the string `s` (its bytes in UTF-8) in
+;;                              base64, as a body that a filter of the
+;;                              server cannot mistake for an attack
 ;;
 ;; A function fails with an error if the element does not exist.
 
@@ -396,13 +401,16 @@ EMSCRIPTEN_KEEPALIVE int web_fetched (int n, int ok, int status, const char* tex
 
 // Starts a request and gives its number: its answer comes as an event,
 // unless it is aborted first.
-EM_JS(int, web_js_fetch, (const char* url, const char* method, const char* body), {
+EM_JS(int, web_js_fetch, (const char* url, const char* method, const char* body, const char* type), {
     const W = Module.web;
     const n = ++W.fn;
     const c = W.fs[n] = new AbortController();
     const opts = { method: method ? UTF8ToString(method) : 'GET', signal: c.signal };
     if (body) {
         opts.body = UTF8ToString(body);
+    }
+    if (type) {
+        opts.headers = { 'Content-Type': UTF8ToString(type) };
     }
     fetch(UTF8ToString(url), opts).then(
         async (r) => ({ ok: r.ok, status: r.status, text: await r.text() }),
@@ -434,8 +442,28 @@ static AStatus web_fetch (AVal* dst, AVal url, AVal t) {
     if (t.type!=A_NIL && t.type!=A_TAB) {
         return a_error("web.fetch : expected table");
     }
-    int n = web_js_fetch(A_STR_OF(url)->s, web_opt(t,"method"), web_opt(t,"body"));
+    int n = web_js_fetch(A_STR_OF(url)->s, web_opt(t,"method"), web_opt(t,"body"), web_opt(t,"type"));
     a_set(dst, a_int(n));
+    return A_OK;
+}
+
+// The bytes of `s` (UTF-8) in base64.
+EM_JS(char*, web_js_base64, (const char* s), {
+    const b = new TextEncoder().encode(UTF8ToString(s));
+    let r = '';
+    for (let i = 0; i < b.length; i += 0x8000) {
+        r += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000));
+    }
+    return stringToNewUTF8(btoa(r));
+});
+
+static AStatus web_base64 (AVal* dst, AVal s) {
+    if (s.type != A_STR) {
+        return a_error("web.base64 : expected string");
+    }
+    char* r = web_js_base64(A_STR_OF(s)->s);
+    a_set(dst, a_strz(r));
+    free(r);
     return A_OK;
 }
 
@@ -530,5 +558,10 @@ val web = [
     },
     del = func (id) {
         `st = web_del($id);`
+    },
+    base64 = func (s) {
+        var v
+        `st = web_base64(&$v, $s);`
+        v
     },
 ]

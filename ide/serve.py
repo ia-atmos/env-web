@@ -25,7 +25,7 @@
 # It only listens on this machine (127.0.0.1): it runs a compiler on
 # whatever it receives.
 
-import hashlib, html, os, re, subprocess, sys
+import base64, hashlib, html, os, re, subprocess, sys
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
@@ -243,6 +243,8 @@ class Handler (SimpleHTTPRequestHandler):
         if url.path != '/run' or mode not in ('web', 'pico', 'text'):
             return self.answer(404, 'not found')
         src = self.rfile.read(int(self.headers.get('Content-Length', 0)))
+        if src.startswith(b'src='):         # a form, the program in base64 (see site/run.cgi)
+            src = base64.b64decode(src[4:])
         g = guide(parse_qs(url.query).get('guide', [''])[0])
         key = hashlib.sha256(mode.encode() + b'\n' + (g['title'].encode() if g else b'') + b'\n' + src).hexdigest()[:16]
         dir = os.path.join(RUN, key)

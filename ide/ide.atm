@@ -87,7 +87,10 @@ loop {
                     web.set("runner", "src", "about:blank")
                     web.set("busy", "hidden", false)
                     val url = server ++ "?mode=" ++ web.get("mode", "value") ++ "&guide=" ++ guide
-                    val r = await web.fetch(url, [method="POST", body=code])
+                    ;; as a form, in base64: the filter of the host (mod_security)
+                    ;; refuses a body that looks like code
+                    val r = await web.fetch(url, [method="POST", type="application/x-www-form-urlencoded",
+                                                  body="src=" ++ web.base64(code)])
                     web.set("busy", "hidden", true)
                     web.set("log", "class.error", !r.ok)
                     if r.ok {

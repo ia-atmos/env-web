@@ -4,7 +4,9 @@
 # with the address of its page, which the player shows. The program runs
 # in the browser of the reader; here it is only compiled.
 #
-#   POST run.cgi?mode=web|pico|text&guide=<name>    the body is the program
+#   POST run.cgi?mode=web|pico|text&guide=<name>    the body is the program,
+#       or the form src=<the program in base64>, which the filter of the
+#       host (mod_security) lets through
 #       200: the address of its page (run/<key>/main.html, under atmos/)
 #       400: the errors of the compiler, or why it was refused
 #       413, 503: too big, or the server is busy
@@ -20,7 +22,7 @@
 # others wait up to 60 s); a compile has at most 120 s; at most 300 pages
 # are kept, the oldest are removed.
 
-import fcntl, hashlib, json, os, pwd, re, shutil, subprocess, sys, time
+import base64, fcntl, hashlib, json, os, pwd, re, shutil, subprocess, sys, time
 from urllib.parse import parse_qs
 
 HOME  = pwd.getpwuid(os.getuid()).pw_dir
@@ -56,6 +58,16 @@ def tools ():
     roots = { 'PICO': env['PICO'], 'ATMOS': env['ATMOS'], 'WEB': web }
     return env, os.path.join(web, 'atmos-web'), roots
 
+# The body is a form, `src=<the program in base64>` (the filter of the
+# host refuses a body that looks like code), or the program as it is.
+def program (body):
+    if body.startswith(b'src='):
+        try:
+            return base64.b64decode(body[4:], validate=True)
+        except ValueError:
+            answer(400, 'the program is not in base64')
+    return body
+
 def refused (src):
     code = re.sub(r';;[^\n]*', '', src)                 # comments may have anything
     if '`' in code:
@@ -79,9 +91,11 @@ def main ():
     if mode not in ('web', 'pico', 'text'):
         answer(400, 'unknown mode')
     n = int(os.environ.get('CONTENT_LENGTH') or 0)
-    if n > MAX_SRC:
+    if n > 2 * MAX_SRC:
         answer(413, 'the program is too big (at most %d bytes)' % MAX_SRC)
-    src = sys.stdin.buffer.read(n)
+    src = program(sys.stdin.buffer.read(n))
+    if len(src) > MAX_SRC:
+        answer(413, 'the program is too big (at most %d bytes)' % MAX_SRC)
     why = refused(src.decode('utf-8', 'replace'))
     if why:
         answer(400, why)

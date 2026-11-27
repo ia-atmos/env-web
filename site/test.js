@@ -69,6 +69,12 @@ const check = (name, got, exp) => {
     await fr.locator('#end').waitFor({ state: 'visible', timeout: 15000 });
     check('hello: the exercise runs', (await fr.locator('#out').textContent()).trim().split('\n')[0], 'Tock 0');
     check('hello: no hourglass after', await p.isHidden('#busy'), true);
+    // a program with letters out of ASCII (it goes in base64, as UTF-8)
+    await p.fill('#code', 'print "Olá, açaí!"');
+    await p.click('#run');
+    await p.waitForFunction(() => (document.getElementById('runner').getAttribute('src') || '').startsWith('run/'), null, { timeout: 120000 });
+    await fr.locator('#end').waitFor({ state: 'visible', timeout: 15000 });
+    check('hello: UTF-8', (await fr.locator('#out').textContent()).trim(), 'Olá, açaí!');
     // Stop ends the program
     await p.click('#run');
     await fr.locator('#out').waitFor();
