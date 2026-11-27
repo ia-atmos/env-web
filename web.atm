@@ -66,7 +66,7 @@
 ;;
 ;; A function fails with an error if the element does not exist.
 
-```:prelude
+```:prelude.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

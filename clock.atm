@@ -9,7 +9,7 @@
 ;; A program with only `print` and time, as those of the guide of Atmos,
 ;; runs in a page with it: `atmos-web --text prog.atm`.
 
-```:prelude
+```:prelude.c
 #include <stdio.h>
 #include <emscripten.h>
 
