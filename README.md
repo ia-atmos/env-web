@@ -1,12 +1,16 @@
 # env-web
 
-An environment of the browser for [Atmos][atmos]: the page (the DOM) as
-events and properties, with the program compiled to WebAssembly through
-[Emscripten][emcc].
+[![Tests](https://github.com/ia-atmos/env-web/actions/workflows/tests.yml/badge.svg)](https://github.com/ia-atmos/env-web/actions/workflows/tests.yml)
+[![Published](https://github.com/ia-atmos/env-web/actions/workflows/published.yml/badge.svg)](https://github.com/ia-atmos/env-web/actions/workflows/published.yml)
+
+[Atmos][atmos] in the browser: write the logic of a web page in Atmos,
+as a sequence in time, and run it in any page, compiled to WebAssembly.
+
+The site of Atmos, with its tutorials running in the browser, is made
+here: **https://ceu-lang.org/new/**
 
 An event of the page becomes an event of the program, and an element is
-named by its `id`, as in the HTML, so the logic of a page is written as
-a sequence in time:
+named by its `id`, as in the HTML:
 
 ```
 web.set("msg", "text", "running")
@@ -30,71 +34,73 @@ watching :click [id="stop"] {
 web.set("msg", "text", "stopped")
 ```
 
-- [`web.atm`](web.atm): the environment (its header documents the API).
-- [`atmos-web`](atmos-web): builds a page from a program, over the DOM;
-  with `--pico`, over [pico][pico] on a canvas; with `--text`, with only
-  time and `print` ([`clock.atm`](clock.atm), the default environment
-  of Atmos in the browser).
-- [`ide/`](ide/): a simple IDE in the browser, written in Atmos: an
-  editor, the two modes, and Run.
-- [`exs/`](exs/): `counter` (the program above, over `counter.html`) and
-  `threads` (a tree of threads that the program creates).
-- [`tst/`](tst/): the tests, in Chromium (`make tests`).
-
-Status: experimental. The plan is in [`.claude/plans/`](.claude/plans/).
+Status: experimental.
 
 [atmos]: https://github.com/ia-atmos/lang
 [emcc]:  https://emscripten.org/
 [pico]:  https://github.com/ia-atmos/env-pico
 
-# Run
+# Use it in your project
 
-It needs `emcc` in the PATH, and the compiler built in `../lang` (or
-`ATMOS=<dir>`):
+## 1. The tools
+
+[Emscripten][emcc], the compiler of Atmos, and this repository, side by
+side:
 
 ```
+git clone https://github.com/emscripten-core/emsdk
+(cd emsdk && ./emsdk install latest && ./emsdk activate latest)
+. emsdk/emsdk_env.sh                    # emcc in the PATH
+
 git clone https://github.com/ia-atmos/lang
-make -C lang
-./atmos-web exs/counter.atm out      # out/counter.html, .js, .wasm
-(cd out && python3 -m http.server)   # open http://localhost:8000/counter.html
+make -C lang                            # the compiler, lang/atmos
+
+git clone https://github.com/ia-atmos/env-web
 ```
 
-If `<prog>.html` exists beside the program, it is the page, with the
-line `{{{ SCRIPT }}}` where the program is loaded. Otherwise the page is
-empty, and the program creates its elements with `web.new`.
+`atmos-web` finds the compiler in `../lang`, or in `ATMOS=<dir>`.
 
-# Pico
-
-`atmos-web --pico` builds a program of [pico][pico] for the browser,
-from a checkout of `env-pico` in `../env-pico` (or `PICO=<dir>`), which
-is not copied here. The files that the program reads are preloaded:
+## 2. Build
 
 ```
-cd ../env-pico/exs/rocks
-../../../env-web/atmos-web --pico main.atm out -- \
-    --preload-file imgs --preload-file snds --preload-file tiny.ttf
+env-web/atmos-web app.atm out
 ```
 
-# IDE
+This gives `out/app.js` and `out/app.wasm` (and `out/app.html`, a page
+for them). The first build also builds the runtime, once. A small
+program is about 240 KB of `.wasm`, 95 KB with gzip.
+
+## 3. Put it in your page
+
+Copy `app.js` and `app.wasm` to the same folder of your site, and load
+the script at the end of the page, after the elements that the program
+uses:
 
 ```
-python3 ide/serve.py        # then open http://127.0.0.1:8080/
+<p>count: <span id="count">0</span> <button id="inc">+1</button></p>
+...
+<script src="js/app.js"></script>
 ```
 
-An editor, a choice between the two modes, and a button Run, which sends
-the program to `serve.py`: it compiles it (`atmos-web`) and answers with
-the address of its page, shown beside the editor, or with the errors of
-the compiler. With a guide, at `/guide/<name>`, it also shows the steps
-of the guide, each with its text, its program and two exercises
-([`guides/`](guides/)): `/guide/atmos`, the 21 examples of the guide of
-the compiler (`lang/doc/guide.md`, read from the checkout in `ATMOS`),
-and `/guide/birds`, the 11 steps of the tutorial of pico. A guide here
-only adds what its source lacks: the exercises, and for birds the text. The editor itself is an
-Atmos program over the DOM
-([`ide/ide.atm`](ide/ide.atm)). The server runs a compiler on what it
-receives, so it only listens on the machine where it runs.
+The program starts when the script loads, and finds the elements by
+their ids. Elements that the program creates itself (`web.new`) need not
+be in the page. The files are static: any server of files works, but
+not `file://` (the browser does not load WebAssembly from a disk).
 
-# Interface
+To try a program alone, `app.html` beside `app.atm` is used as the page
+of `out/app.html`, with the line `{{{ SCRIPT }}}` where the program is
+loaded (see [`exs/counter.html`](exs/counter.html)); without it, the
+page is empty:
+
+```
+env-web/atmos-web env-web/exs/counter.atm out
+(cd out && python3 -m http.server)      # http://localhost:8000/counter.html
+```
+
+## 4. The interface
+
+The environment is [`web.atm`](web.atm) (its header documents it in
+full).
 
 | Event | |
 |-------|-|
@@ -114,6 +120,35 @@ The time is emitted at each frame, so `await 1s` works as usual.
 | `web.del(id)` | Removes an element |
 | `await web.fetch(url, t)` | A request to a server (`method`, `body` in `t`), as a task: it ends with `[ok, status, text]`, and is cancelled if the task is aborted |
 
+## Other modes
+
+- `atmos-web --pico app.atm out`: a program of [pico][pico], with
+  graphics on a canvas, from a checkout of `env-pico` in `../env-pico`
+  (or `PICO=<dir>`). The files that it reads are preloaded:
+  `atmos-web --pico main.atm out -- --preload-file imgs`.
+- `atmos-web --text app.atm out`: only time and `print`, which writes to
+  the page ([`clock.atm`](clock.atm), the default environment of Atmos).
+
+# The site
+
+The site at https://ceu-lang.org/new/ is made here:
+
+- [`site/`](site/): the landing page, the page of Atmos, images and
+  papers; `site/build.py` builds the whole site, with every step of the
+  guides already compiled, so it is only static files.
+- [`guides/`](guides/): the text and the exercises of each guide; the
+  programs come from [`exs/`](exs/), `env-pico/exs/birds/` and
+  `lang/doc/guide.md`.
+- [`ide/`](ide/): the player of the guides and a simple IDE, written in
+  Atmos over the DOM. `python3 ide/serve.py` serves it with a compile
+  server, at http://127.0.0.1:8080/ (only on the machine: it compiles
+  what it receives).
+
+The workflows: **Tests** builds the site and runs the tests in Chromium
+at each push; **Publish the site** publishes it, by hand (Actions, Run
+workflow); **Published** says whether the published site is the current
+`main`.
+
 # Tests
 
 ```
@@ -121,6 +156,5 @@ make tests          # or: tst/run.sh [name ...]
 ```
 
 They build the examples and `tst/*.atm`, serve them, and drive each page
-in Chromium with [Playwright][pw].
-
-[pw]: https://playwright.dev/
+in Chromium with [Playwright](https://playwright.dev/). The site has its
+own (`site/test.js`).
