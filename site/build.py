@@ -82,6 +82,7 @@ def main ():
     ok, err = serve.build([os.path.join(HERE, '..', 'ide', 'ide.atm'), OUT])
     if not ok:
         sys.exit('build.py : the player did not build :\n' + err)
+    os.unlink(os.path.join(OUT, 'ide.c'))
     page = open(os.path.join(OUT, 'ide.html'), encoding='utf-8').read()
 
     jobs = []
