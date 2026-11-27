@@ -1,6 +1,5 @@
-pico.open()
-loop i in 100 {
-    pico.output.draw.pixel ['!', x=i,    y=i]
-    pico.output.draw.pixel ['!', x=99-i, y=i]
-    pico.input.delay(30)
+watching 5s {
+    loop on 1s {
+        print "Hello World!"
+    }
 }

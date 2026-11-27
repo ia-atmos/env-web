@@ -1,26 +1,23 @@
 @title Atmos: the first program
-@mode pico
+@mode text
 @base WEB:exs
 
 # Hello World!
 
 @code hello.atm
 
-The program draws an `X`, pixel by pixel, in 3 seconds. Click **Run** to
-see it.
+During 5 seconds, the program prints `Hello World!` every second. Click
+**Run** to see it.
 
-`pico.open()` opens the screen: 100 by 100 pixels, with a grid to help
-see where each one goes. The loop counts `i` from 0 to 99 and, at each
-turn, draws two pixels: one going down to the right (`x=i`), the other
-going down to the left (`x=99-i`). `pico.input.delay(30)` waits 30
-milliseconds before the next turn, so that the `X` appears little by
-little. Each pixel shows up as soon as it is drawn.
+`loop on 1s` runs its body every second, forever. `watching 5s` runs its
+block for 5 seconds, and then aborts it: the loop inside stops, wherever
+it is. Nothing in the loop knows about the 5 seconds. This is the idea
+of Atmos: a block that ends takes everything inside it along.
 
 ### Exercises
 
-1. Draw the `X` in 1 second.
-2. Draw also a horizontal line across the middle of the screen, growing
-   from the left at the same time as the `X`.
+1. Print `Hello World!` every half second, during 3 seconds.
+2. After the `watching`, print `Bye!`. When does it appear?
 
 ### Where to go next
 

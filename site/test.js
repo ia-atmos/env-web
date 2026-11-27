@@ -45,10 +45,10 @@ const check = (name, got, exp) => {
     await open('hello');
     check('hello: one step', await p.locator('#step option').count(), 1);
     check('hello: two exercises', await p.locator('#text h3:has-text("Exercises") + ol > li').count(), 2);
-    check('hello: the mode', await p.inputValue('#mode'), 'pico');
+    check('hello: the mode', await p.inputValue('#mode'), 'text');
     await p.click('#run');
-    await fr.locator('canvas').waitFor({ timeout: 20000 });
-    check('hello: a canvas', await fr.locator('canvas').count(), 1);
+    await fr.locator('#end').waitFor({ state: 'visible', timeout: 15000 });
+    check('hello: the output', (await fr.locator('#out').textContent()).trim().split('\n'), Array(4).fill('Hello World!'));
     await p.click('#text a:has-text("Birds")');
     await p.waitForFunction(() => document.getElementById('text').dataset.step === '1');
     check('hello: the link to birds', new URL(p.url()).pathname, '/atmos/guide/birds/');

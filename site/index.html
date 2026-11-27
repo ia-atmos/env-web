@@ -13,8 +13,8 @@
   .two img  { height: 60px; margin-top: 1em; }
   .tag  { font-size: .75em; padding: 1px 6px; border: 1px solid; border-radius: 3px; vertical-align: middle; }
   .ex   { display: flex; flex-wrap: wrap; gap: 1em; align-items: flex-start; }
-  .ex pre { flex: 1 1 22em; overflow: auto; margin: 0; padding: .8em; background: #f4f4f4; font-size: 14px; }
-  .ex img { width: 220px; max-width: 100%; }
+  .ex pre { flex: 1 1 16em; overflow: auto; margin: 0; padding: .8em; background: #f4f4f4; font-size: 15px; }
+  .ex img { max-width: 100%; }
   .try  { display: inline-block; padding: .4em 1em; border: 1px solid #0645ad; border-radius: 4px; text-decoration: none; }
   code  { background: #f4f4f4; padding: 0 3px; }
   summary { cursor: pointer; font-size: 1.5em; font-weight: bold; margin: .8em 0; }
@@ -58,15 +58,14 @@ and no manual cleanup.
 
 <h2>This is what Atmos looks like</h2>
 <div class="ex">
-<pre>pico.open()
-loop i in 100 {
-    pico.output.draw.pixel ['!', x=i,    y=i]
-    pico.output.draw.pixel ['!', x=99-i, y=i]
-    pico.input.delay(30)
+<pre>watching 5s {
+    loop on 1s {
+        print "Hello World!"
+    }
 }</pre>
-<img src="imgs/atmos-x.gif" alt="an X drawn pixel by pixel, in 3 seconds">
+<img src="imgs/atmos-hello.gif" alt="the program running: Hello World! four times, then the program ends">
 </div>
-<p>Draws an <code>X</code>, pixel by pixel, in 3 seconds.</p>
+<p>During 5 seconds, prints <code>Hello World!</code> every second.</p>
 <p><a class="try" href="atmos/guide/hello/"><b>Try it in the browser &rarr;</b></a></p>
 
 <h2>Features</h2>
