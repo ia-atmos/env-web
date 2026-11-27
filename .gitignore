@@ -3,3 +3,6 @@ tst/out/
 .cache/
 ide/out/
 ide/run/
+__pycache__/
+site/out/
+site/www/
