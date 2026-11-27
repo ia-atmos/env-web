@@ -38,15 +38,14 @@
 <div class="two">
   <div>
     <h2><a href="atmos/"><img src="imgs/atmos-logo.png" alt="Atmos"></a>Atmos <span class="tag" style="color:#080">active</span></h2>
-    <p>The current language. Features tasks, pools, and lexical pins for
-       dynamic values. Targets games and interfaces. Compiles to C and also
+    <p>The current language. Features tasks, pools, and lexical pins. Targets games and interfaces. Compiles to C and also
        runs in the browser.</p>
     <p><a href="atmos/"><b>Atmos &rarr;</b></a></p>
   </div>
   <div>
     <h2><a href="ceu/"><img src="imgs/ceu.png" alt="Céu"></a>Céu <span class="tag" style="color:#888">research</span></h2>
-    <p>The original language. Strict synchronous, deterministic, and bounded
-       semantics. Targets embedded systems with a small footprint.</p>
+    <p>The original language. Strict semantics: synchronous, deterministic, and
+       bounded. Targets embedded systems with a small footprint.</p>
     <p><a href="ceu/"><b>Céu &rarr;</b></a></p>
   </div>
 </div>
@@ -56,20 +55,20 @@
 <div class="code">
 <pre>watching 5s {
     loop i {
-        print("Closing in " ++ tostring(5 - i) ++ "s")
+        print("Closing in " ++ tostring(5-i) ++ "s...")
         await 1s
     }
 }
 print "Bye!"</pre>
-<p>Counts down from 5, one per second. At 5 seconds, the <code>watching</code> aborts the loop before it reaches 0, and the program says <code>Bye!</code>.</p>
+<p>During five seconds, counts down every second.</p>
 </div>
-<img src="imgs/atmos-hello.gif" alt="the program running: Closing in 5s down to Closing in 1s, one per second, then Bye!">
+<img src="imgs/atmos-hello.gif" alt="the program running: Closing in 5s... down to Closing in 1s..., one per second, then Bye!">
 </div>
 
 <h2>Features</h2>
 <ul>
   <li><b>Structured:</b> tasks live in hierarchical blocks, which constrain
-      their life cycle.</li>
+      their life cycles.</li>
   <li><b>Reactive:</b> tasks communicate through events, with
       <code>await</code> and <code>emit</code>.</li>
   <li><b>Concurrency:</b> tasks await side by side, with deterministic

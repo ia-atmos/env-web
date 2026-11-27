@@ -97,3 +97,4 @@ Items put to the author are local to this session (`#1`, `#2`, ...;
 | 50 | The player of the guides | the author: the canvas of pico centered in x and y; text first in the modes; in a guide the mode is fixed (disabled), and a choice of guide (hello, birds, atmos) replaces the title; the features: "Structured: tasks live in hierarchical blocks, which constrain their life cycle."; the contact: his name last |
 | 51 | The text of the countdown | the author: a, `Closing in 5s` ... `Closing in 1s`, then `Bye!` |
 | 52 | The run of Published failed at each push | it ran before the publish ended, then passed after it: the push trigger removed (after each publish, daily, by hand) |
+| 54 | The landing, wording | the author: `"s..."` in the countdown; the caption back to the short form ("During five seconds, counts down every second."); Céu: "Strict semantics: synchronous, deterministic, and bounded."; Atmos: "Features tasks, pools, and lexical pins."; "life cycles" |
