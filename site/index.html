@@ -55,23 +55,25 @@
 <div class="ex">
 <div class="code">
 <pre>watching 5s {
-    loop on 1s {
-        print "Hello World!"
+    loop i {
+        print(5 - i)
+        await 1s
     }
-}</pre>
-<p>During five seconds, prints <code>Hello World!</code> every second.</p>
+}
+print "Liftoff!"</pre>
+<p>Counts down from 5, one per second. At 5 seconds, the <code>watching</code> aborts the loop before it prints 0.</p>
 </div>
-<img src="imgs/atmos-hello.gif" alt="the program running: Hello World! four times, then the program ends">
+<img src="imgs/atmos-hello.gif" alt="the program running: 5, 4, 3, 2, 1, one per second, then Liftoff!">
 </div>
 
 <h2>Features</h2>
 <ul>
-  <li><b>Structured:</b> each line of execution belongs to a block; when the
-      block ends, everything inside it is aborted and finalized.</li>
-  <li><b>Reactive:</b> waiting is a statement; a program awaits events in
-      sequence, with no callbacks.</li>
-  <li><b>Concurrency:</b> lines of execution run side by side, with
-      deterministic, synchronous scheduling.</li>
+  <li><b>Structured:</b> tasks live in hierarchical blocks, and their life
+      cycle follows the source code.</li>
+  <li><b>Reactive:</b> tasks communicate through events, with
+      <code>await</code> and <code>emit</code>.</li>
+  <li><b>Concurrency:</b> tasks await side by side, with deterministic
+      scheduling.</li>
 </ul>
 
 <h2>Contact</h2>

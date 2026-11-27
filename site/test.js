@@ -48,7 +48,7 @@ const check = (name, got, exp) => {
     check('hello: the mode', await p.inputValue('#mode'), 'text');
     await p.click('#run');
     await fr.locator('#end').waitFor({ state: 'visible', timeout: 15000 });
-    check('hello: the output', (await fr.locator('#out').textContent()).trim().split('\n'), Array(4).fill('Hello World!'));
+    check('hello: the output', (await fr.locator('#out').textContent()).trim().split('\n'), ['5', '4', '3', '2', '1', 'Liftoff!']);
     await p.click('#text a:has-text("Birds")');
     await p.waitForFunction(() => document.getElementById('text').dataset.step === '1');
     check('hello: the link to birds', new URL(p.url()).pathname, '/atmos/guide/birds/');

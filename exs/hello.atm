@@ -1,5 +1,7 @@
 watching 5s {
-    loop on 1s {
-        print "Hello World!"
+    loop i {
+        print(5 - i)
+        await 1s
     }
 }
+print "Liftoff!"
