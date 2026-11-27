@@ -5,3 +5,4 @@ ide/out/
 ide/run/
 __pycache__/
 site/out/
+node_modules/

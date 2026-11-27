@@ -1,0 +1,38 @@
+# At each push to main: builds the site (site/build.py) and runs the
+# tests in Chromium: the DOM environment (tst/run.sh) and the static site
+# (site/test.js). It publishes nothing: publishing is by hand, with
+# "Publish the site" (site.yml).
+name: Tests
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['.claude/**']
+  workflow_dispatch:
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: The tools (lang, env-pico, emsdk, Playwright)
+        run: |
+          git clone -q --depth 1 https://github.com/ia-atmos/lang.git ../lang
+          make -s -C ../lang atmos
+          git clone -q --depth 1 https://github.com/ia-atmos/env-pico.git ../env-pico
+          git clone -q --depth 1 https://github.com/emscripten-core/emsdk.git ../emsdk
+          (cd ../emsdk && ./emsdk install latest >/dev/null && ./emsdk activate latest >/dev/null)
+          npm install --no-save --silent playwright
+          npx playwright install --with-deps chromium
+      - name: The DOM environment
+        run: |
+          . ../emsdk/emsdk_env.sh
+          tst/run.sh
+      - name: Build the site
+        run: |
+          . ../emsdk/emsdk_env.sh
+          python3 site/build.py out 4
+      - name: Test the site
+        run: |
+          python3 -m http.server 8091 -d out >/dev/null 2>&1 &
+          sleep 1
+          node site/test.js
