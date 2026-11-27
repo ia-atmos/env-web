@@ -33,6 +33,7 @@ jobs:
           python3 site/build.py out 4
       - name: Test the site
         run: |
-          python3 -m http.server 8091 -d out >/dev/null 2>&1 &
+          . ../emsdk/emsdk_env.sh
+          python3 site/serve.py out 8091 &
           sleep 1
           node site/test.js

@@ -6,12 +6,14 @@
 ;; guide: the text of a step, with its exercises, and its program in the
 ;; editor.
 ;;
-;; In a static site (site/build.py) there is no server: each step comes
-;; with its page already compiled, and Run shows it while the program is
-;; as the guide gives it. An edited program needs a compile server.
+;; In the static site (site/build.py) each step comes with its page
+;; already compiled, and Run shows it while the program is as the guide
+;; gives it. An edited program goes to the compile server, at the address
+;; that the page gives (`run` with serve.py, `run.cgi` on the site).
 
 val guide  = web.get("guide",  "content")
 val static = web.get("static", "content") == "1"
+val server = web.get("server", "content")
 
 func sample () {
     web.set("code", "value", web.get("sample-" ++ web.get("mode", "value"), "value"))
@@ -71,18 +73,14 @@ loop {
     ;; another click starts over: a request in course is cancelled
     watching :click [id="run"] {
         val code = web.get("code", "value")
-        if static {
-            if code == web.get("code", "attr.data-orig") {
-                web.set("log", "class.error", false)
-                web.set("log", "text", "")
-                web.set("runner", "src", web.get("code", "attr.data-page"))
-            } else {
-                web.set("log", "class.error", true)
-                web.set("log", "text", "This page has no compile server: only the programs of the guide run here.")
-            }
+        if static && (code == web.get("code", "attr.data-orig")) {
+            ;; as the guide gives it: its page is already compiled
+            web.set("log", "class.error", false)
+            web.set("log", "text", "")
+            web.set("runner", "src", web.get("code", "attr.data-page"))
         } else {
             web.set("status", "text", "compiling...")
-            val url = "run?mode=" ++ web.get("mode", "value") ++ "&guide=" ++ guide
+            val url = server ++ "?mode=" ++ web.get("mode", "value") ++ "&guide=" ++ guide
             val r = await web.fetch(url, [method="POST", body=code])
             web.set("status", "text", "")
             web.set("log", "class.error", !r.ok)
@@ -90,9 +88,9 @@ loop {
                 web.set("log", "text", "")
                 web.set("runner", "src", r.text)
             } else {
-                web.set("log", "text", r.text)
+                web.set("log", "text", if r.status == 400 => r.text => "The compile server did not answer (status " ++ r.status ++ ").")
             }
         }
-        await(false)
+        await false
     }
 }

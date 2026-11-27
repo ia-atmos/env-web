@@ -28,11 +28,22 @@ const check = (name, got, exp) => {
     await fr.locator('#end').waitFor({ state: 'visible', timeout: 15000 });
     const out = await fr.locator('#out').textContent();
     check('atmos: step 1 printed something', out.trim().length > 0, true);
-    // an edited program needs a server
-    await p.fill('#code', 'print "x"');
+    // an edited program goes to the compile server (run.cgi), and runs
+    await p.fill('#code', 'print "edited"');
     await p.click('#run');
-    await p.waitForFunction(() => document.getElementById('log').textContent.includes('no compile server'));
-    check('atmos: edited program, no server', await p.getAttribute('#log', 'class'), 'error');
+    await p.waitForFunction(() => (document.getElementById('runner').getAttribute('src') || '').startsWith('run/'), null, { timeout: 120000 });
+    await fr.locator('#end').waitFor({ state: 'visible', timeout: 15000 });
+    check('atmos: an edited program runs', (await fr.locator('#out').textContent()).trim(), 'edited');
+    // an error of the compiler goes to the log
+    await p.fill('#code', 'val x = \n');
+    await p.click('#run');
+    await p.waitForFunction(() => document.getElementById('log').textContent !== '', null, { timeout: 120000 });
+    check('atmos: an error of the compiler', [(await p.textContent('#log')).includes('main.atm'), await p.getAttribute('#log', 'class')], [true, 'error']);
+    // native code is refused (it could read files of the host)
+    await p.fill('#code', '`printf("x");`\n');
+    await p.click('#run');
+    await p.waitForFunction(() => document.getElementById('log').textContent.includes('native'), null, { timeout: 30000 });
+    check('atmos: native code refused', await p.getAttribute('#log', 'class'), 'error');
     // reset gives the guide's program back, and Run shows it again
     await p.click('#reset');
     await p.waitForFunction(() => document.getElementById('code').value !== 'print "x"');
@@ -51,6 +62,13 @@ const check = (name, got, exp) => {
     await p.click('#run');
     await fr.locator('#end').waitFor({ state: 'visible', timeout: 15000 });
     check('hello: the output', (await fr.locator('#out').textContent()).trim().split('\n'), ['Tick 0', 'Tick 1', 'Tick 2', 'Tick 3', 'Tick 4', 'Bye!']);
+    // an exercise: edit the program of the step, and run it
+    await p.fill('#code', (await p.inputValue('#code')).replace('Tick', 'Tock'));
+    await p.click('#run');
+    await p.waitForFunction(() => (document.getElementById('runner').getAttribute('src') || '').startsWith('run/'), null, { timeout: 120000 });
+    await fr.locator('#end').waitFor({ state: 'visible', timeout: 15000 });
+    check('hello: the exercise runs', (await fr.locator('#out').textContent()).trim().split('\n')[0], 'Tock 0');
+
     await p.click('#text a:has-text("Birds")');
     await p.waitForFunction(() => document.getElementById('text').dataset.step === '1');
     check('hello: the link to birds', new URL(p.url()).pathname, '/atmos/guide/birds/');
@@ -71,6 +89,12 @@ const check = (name, got, exp) => {
     await p.waitForTimeout(1500);
     if (SHOTS) await p.screenshot({ path: SHOTS + '/site-birds-3.png' });
     check('birds: step 3 has a canvas', await fr.locator('canvas').count(), 1);
+    // an edited step of birds: compiled with the images of the guide
+    await p.fill('#code', (await p.inputValue('#code')).replace('loop i in (1,5)', 'loop i in (1,3)'));
+    await p.click('#run');
+    await p.waitForFunction(() => (document.getElementById('runner').getAttribute('src') || '').startsWith('run/'), null, { timeout: 180000 });
+    await fr.locator('canvas').waitFor({ timeout: 20000 });
+    check('birds: an edited step runs', [await fr.locator('canvas').count(), await p.textContent('#log')], [1, '']);
     const box = await fr.locator('canvas').boundingBox(), vp = await p.locator('#runner').boundingBox();
     check('birds: the canvas is centered', Math.abs((box.y + box.height/2) - (vp.y + vp.height/2)) < 3, true);
 

@@ -49,5 +49,9 @@ jobs:
           # new/ must be absent, empty, or ours
           $SSH "$DH_USER@$DH_HOST" "D='$DH_DIR/new'; mkdir -p \"\$D\"; [ -z \"\$(ls -A \"\$D\" | grep -vx ceu)\" ] || [ -e \"\$D/.env-web-site\" ]" \
             || { echo "$DH_DIR/new holds files that this workflow did not put there: stopped"; exit 1; }
-          rsync -rlz --delete --exclude '/ceu' -e "$SSH" out/ "$DH_USER@$DH_HOST:$DH_DIR/new/"
+          # -p keeps run.cgi executable; atmos/run/ holds what run.cgi compiled
+          rsync -rlpz --delete --exclude '/ceu' --exclude '/atmos/run/' -e "$SSH" out/ "$DH_USER@$DH_HOST:$DH_DIR/new/"
+          # the tools of run.cgi on the host (those of site/probe-node.sh): to the latest
+          $SSH "$DH_USER@$DH_HOST" 'cd ~/atmos-probe && for r in env-web lang env-pico; do git -C $r pull -q || exit 1; done && make -s -C lang >/dev/null' \
+            || echo "::warning::the tools of the compile server (~/atmos-probe) were not updated"
           rm -f ~/.ssh/id_deploy

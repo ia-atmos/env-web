@@ -9,10 +9,11 @@ tests:
 ide:
 	python3 ide/serve.py
 
-# the whole site, as it is published (without ceu/), at http://127.0.0.1:8091/
+# the whole site, as it is published (without ceu/), at http://127.0.0.1:8091/,
+# with the compile server of the edited programs
 site:
 	python3 site/build.py site/out 4
-	python3 -m http.server 8091 -d site/out
+	python3 site/serve.py site/out 8091
 
 clean:
 	rm -rf out tst/out ide/out ide/run site/out .cache

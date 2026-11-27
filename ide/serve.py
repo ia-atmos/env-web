@@ -115,6 +115,7 @@ def guide (name):
             g['preload'].append(m.group(2).strip())
         elif m and m.group(1) in ('base', 'source'):
             g[m.group(1)] = root(m.group(2))
+            g[m.group(1) + '_spec'] = m.group(2).strip()   # as written: ROOT:dir
         elif m:
             g[m.group(1)] = m.group(2).strip()
         elif cur is None:
@@ -206,7 +207,7 @@ class Handler (SimpleHTTPRequestHandler):
         if path == '/' or (m and guide(m.group(1))):
             page = open(os.path.join(OUT, 'ide.html'), encoding='utf-8').read()
             name = m.group(1) if m else ''
-            page = page.replace('<head>', '<head><base href="/"><meta id="guide" content="%s"><meta id="static" content="">' % name, 1)
+            page = page.replace('<head>', '<head><base href="/"><meta id="guide" content="%s"><meta id="static" content=""><meta id="server" content="run">' % name, 1)
             page = page.replace('<option>GUIDES</option>', options(), 1)
             return self.answer(200, page, 'text/html')
         m = re.fullmatch(r'/g/([a-z0-9-]+)/(info|(\d+)/(text|code))', path)

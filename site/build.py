@@ -9,20 +9,22 @@
 #   <outdir>/atmos/g/<name>/info         its title, mode and number of steps
 #   <outdir>/atmos/g/<name>/<i>/{text,code}    a step
 #   <outdir>/atmos/g/<name>/<i>/main.html ...  its program, compiled
+#   <outdir>/atmos/run.cgi, guides.json  the compile server (site/run.cgi)
+#   <outdir>/atmos/run/                  what it compiled (made on the host)
 #
 # The page of Céu (<outdir>/ceu/) is not made here: it is the current
 # site of Céu, copied as it is on the host.
 #
-# Each program of each step is compiled here, so the site is only files
-# and needs no server (Run shows the compiled page; an edited program
-# needs a compile server, which the site does not have). The marker file
+# Each program of each step is compiled here, so the steps are only files
+# (Run shows the compiled page); an edited program goes to run.cgi, which
+# compiles it on the host, once per request. The marker file
 # `.env-web-site` says that the folder belongs to this build (see
 # `.github/workflows/site.yml`).
 #
 # It needs what `atmos-web` needs: emcc in the PATH, ATMOS (a built
 # checkout of ia-atmos/lang) and PICO (a checkout of ia-atmos/env-pico).
 
-import os, shutil, subprocess, sys
+import json, os, shutil, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -86,17 +88,23 @@ def main ():
     os.unlink(os.path.join(OUT, 'ide.c'))
     page = open(os.path.join(OUT, 'ide.html'), encoding='utf-8').read()
 
-    jobs = []
+    jobs, known = [], {}
     for name in GUIDES:
         g = serve.guide(name)
+        # for the compile server: what an edited program of the guide needs
+        known[name] = { 'mode': g['mode'], 'base': g.get('base_spec'), 'preload': g['preload'] }
         n = len(g['steps'])
         put(os.path.join(OUT, 'g', name, 'info'), '%s\n%s\n%d' % (g['title'], g['mode'], n))
         put(os.path.join(OUT, 'guide', name, 'index.html'),
             page.replace('<head>', '<head><base href="../../"><link rel="icon" href="../imgs/atmos-icon.png">'
                                    '<meta id="guide" content="%s">'
-                                   '<meta id="static" content="1">' % name, 1)
+                                   '<meta id="static" content="1"><meta id="server" content="run.cgi">' % name, 1)
                 .replace('<option>GUIDES</option>', serve.options(), 1))
         jobs += [(g, name, i+1, s) for i, s in enumerate(g['steps'])]
+
+    put(os.path.join(OUT, 'guides.json'), json.dumps(known, indent=1))
+    shutil.copy(os.path.join(HERE, 'run.cgi'), OUT)
+    os.chmod(os.path.join(OUT, 'run.cgi'), 0o755)
 
     # the first build of each mode makes its libraries (cached): alone
     first, seen = [], set()
