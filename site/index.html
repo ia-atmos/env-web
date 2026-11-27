@@ -10,6 +10,7 @@
   .sub  { color: #666; margin-top: .2em; }
   .two  { display: flex; flex-wrap: wrap; gap: 1em; }
   .two > div { flex: 1 1 18em; border: 1px solid #ccc; padding: 0 1em 1em; }
+  .head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5em; }
   .go { display: flex; justify-content: space-between; align-items: center; }
   .go img { height: 32px; display: block; }
   .tag  { font-size: .75em; padding: 1px 6px; border: 1px solid; border-radius: 3px; vertical-align: middle; }
@@ -48,17 +49,20 @@
   </div>
 </div>
 
-<h2>This is what Atmos looks like</h2>
+<div class="head">
+<h2>This is what Atmos looks like:</h2>
+<a class="try" href="atmos/guide/hello/"><b>Try Atmos online &rarr;</b></a>
+</div>
 <div class="ex">
-<pre>watching 5s {
+<pre>;; During five seconds,
+;; prints "Hello World!" every second.
+watching 5s {
     loop on 1s {
         print "Hello World!"
     }
 }</pre>
 <img src="imgs/atmos-hello.gif" alt="the program running: Hello World! four times, then the program ends">
 </div>
-<p>During 5 seconds, prints <code>Hello World!</code> every second.</p>
-<p><a class="try" href="atmos/guide/hello/"><b>Try Atmos online &rarr;</b></a></p>
 
 <h2>Features</h2>
 <ul>
