@@ -78,6 +78,7 @@ def main ():
     shutil.copy(os.path.join(HERE, 'index.html'), SITE)
     for d in ('imgs', 'pdfs', 'atmos'):
         shutil.copytree(os.path.join(HERE, d), os.path.join(SITE, d))
+    shutil.copy(os.path.join(HERE, 'favicon.ico'), SITE)
 
     ok, err = serve.build([os.path.join(HERE, '..', 'ide', 'ide.atm'), OUT])
     if not ok:
@@ -91,7 +92,8 @@ def main ():
         n = len(g['steps'])
         put(os.path.join(OUT, 'g', name, 'info'), '%s\n%s\n%d' % (g['title'], g['mode'], n))
         put(os.path.join(OUT, 'guide', name, 'index.html'),
-            page.replace('<head>', '<head><base href="../../"><meta id="guide" content="%s">'
+            page.replace('<head>', '<head><base href="../../"><link rel="icon" href="../imgs/atmos-icon.png">'
+                                   '<meta id="guide" content="%s">'
                                    '<meta id="static" content="1">' % name, 1)
                 .replace('<option>GUIDES</option>', serve.options(), 1))
         jobs += [(g, name, i+1, s) for i, s in enumerate(g['steps'])]

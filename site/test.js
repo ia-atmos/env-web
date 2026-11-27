@@ -74,10 +74,19 @@ const check = (name, got, exp) => {
     const box = await fr.locator('canvas').boundingBox(), vp = await p.locator('#runner').boundingBox();
     check('birds: the canvas is centered', Math.abs((box.y + box.height/2) - (vp.y + vp.height/2)) < 3, true);
 
+    // the icon, on every kind of page
+    for (const page of ['/', '/atmos/', '/atmos/guide/hello/']) {
+        await p.goto(BASE + page);
+        const href = await p.evaluate(() => { const l = document.querySelector('link[rel~=icon]'); return l && l.href; });
+        const r = href && await p.request.get(href);
+        check(page + ': the icon', [!!href, r && r.status()], [true, 200]);
+    }
+    check('/favicon.ico', (await p.request.get(BASE + '/favicon.ico')).status(), 200);
+
     // the landing page and the page of Atmos: every local link and image exists
     for (const page of ['/', '/atmos/']) {
         await p.goto(BASE + page);
-        const urls = await p.evaluate(() => [...document.querySelectorAll('a[href], img[src]')]
+        const urls = await p.evaluate(() => [...document.querySelectorAll('a[href], img[src], link[rel~=icon]')]
             .map(e => e.href || e.src).filter(u => u.startsWith(location.origin) && !u.includes('/ceu/')));
         const bad = [];
         for (const u of new Set(urls.map(u => u.split('#')[0]))) {
