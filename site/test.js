@@ -68,6 +68,13 @@ const check = (name, got, exp) => {
     await p.waitForFunction(() => (document.getElementById('runner').getAttribute('src') || '').startsWith('run/'), null, { timeout: 120000 });
     await fr.locator('#end').waitFor({ state: 'visible', timeout: 15000 });
     check('hello: the exercise runs', (await fr.locator('#out').textContent()).trim().split('\n')[0], 'Tock 0');
+    check('hello: no hourglass after', await p.isHidden('#busy'), true);
+    // Stop ends the program
+    await p.click('#run');
+    await fr.locator('#out').waitFor();
+    await p.click('#stop');
+    await p.waitForFunction(() => document.getElementById('runner').getAttribute('src') === 'about:blank');
+    check('hello: stop', await p.getAttribute('#runner', 'src'), 'about:blank');
 
     await p.click('#text a:has-text("Birds")');
     await p.waitForFunction(() => document.getElementById('text').dataset.step === '1');
@@ -96,7 +103,8 @@ const check = (name, got, exp) => {
     await fr.locator('canvas').waitFor({ timeout: 20000 });
     check('birds: an edited step runs', [await fr.locator('canvas').count(), await p.textContent('#log')], [1, '']);
     const box = await fr.locator('canvas').boundingBox(), vp = await p.locator('#runner').boundingBox();
-    check('birds: the canvas is centered', Math.abs((box.y + box.height/2) - (vp.y + vp.height/2)) < 3, true);
+    check('birds: the canvas is centered in x', Math.abs((box.x + box.width/2) - (vp.x + vp.width/2)) < 3, true);
+    check('birds: the canvas is near the top', box.y - vp.y >= 4 && box.y - vp.y <= 20, true);
 
     // the icon, on every kind of page
     for (const page of ['/', '/atmos/', '/atmos/guide/hello/']) {

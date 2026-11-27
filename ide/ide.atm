@@ -68,29 +68,40 @@ pin side = if guide == "" {
     spawn Guide()
 }
 
-await :click [id="run"]
 loop {
-    ;; another click starts over: a request in course is cancelled
-    watching :click [id="run"] {
-        val code = web.get("code", "value")
-        if static && (code == web.get("code", "attr.data-orig")) {
-            ;; as the guide gives it: its page is already compiled
-            web.set("log", "class.error", false)
-            web.set("log", "text", "")
-            web.set("runner", "src", web.get("code", "attr.data-page"))
-        } else {
-            web.set("status", "text", "compiling...")
-            val url = server ++ "?mode=" ++ web.get("mode", "value") ++ "&guide=" ++ guide
-            val r = await web.fetch(url, [method="POST", body=code])
-            web.set("status", "text", "")
-            web.set("log", "class.error", !r.ok)
-            if r.ok {
-                web.set("log", "text", "")
-                web.set("runner", "src", r.text)
-            } else {
-                web.set("log", "text", if r.status == 400 => r.text => "The compile server did not answer (status " ++ r.status ++ ").")
+    await :click [id="run"]
+    ;; Stop ends the program, or the compile in course
+    watching :click [id="stop"] {
+        loop {
+            ;; another Run starts over: a request in course is cancelled
+            watching :click [id="run"] {
+                web.set("busy", "hidden", true)
+                val code = web.get("code", "value")
+                if static && (code == web.get("code", "attr.data-orig")) {
+                    ;; as the guide gives it: its page is already compiled
+                    web.set("log", "class.error", false)
+                    web.set("log", "text", "")
+                    web.set("runner", "src", web.get("code", "attr.data-page"))
+                } else {
+                    web.set("log", "class.error", false)
+                    web.set("runner", "src", "about:blank")
+                    web.set("busy", "hidden", false)
+                    val url = server ++ "?mode=" ++ web.get("mode", "value") ++ "&guide=" ++ guide
+                    val r = await web.fetch(url, [method="POST", body=code])
+                    web.set("busy", "hidden", true)
+                    web.set("log", "class.error", !r.ok)
+                    if r.ok {
+                        web.set("log", "text", "")
+                        web.set("runner", "src", r.text)
+                    } else {
+                        web.set("log", "text", if r.status == 400 => r.text => "The compile server did not answer (status " ++ r.status ++ ").")
+                    }
+                }
+                await false
             }
         }
-        await false
     }
+    web.set("busy", "hidden", true)
+    web.set("log", "class.error", false)
+    web.set("runner", "src", "about:blank")
 }

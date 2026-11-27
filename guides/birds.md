@@ -22,7 +22,7 @@ clock (`loop us on :clock`) and moves the bird by the time that passed.
 The other awaits the moment of drawing (`loop on :draw`) and draws the
 image of the bird, wings up or down, where it is.
 
-The last line, `await(false)`, awaits what never happens: the program
+The last line, `await false`, awaits what never happens: the program
 stays alive while its tasks run.
 
 ### Exercises
