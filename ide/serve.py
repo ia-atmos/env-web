@@ -51,6 +51,9 @@ def inline (s, link=''):
         url = m.group(2)
         if not re.match(r'[a-z]+:', url):
             url = link + url        # relative to the source of the guide
+        if not re.match(r'[a-z]+:', url):
+            # another guide of this site: in the same page
+            return '<a href="%s">%s</a>' % (url, m.group(1))
         return '<a href="%s" target="_blank">%s</a>' % (url, m.group(1))
     return re.sub(r'\[([^\]]+)\]\(([^)]+)\)', a, s)
 

@@ -1,0 +1,5 @@
+watching 5s {
+    loop on 1s {
+        print "Hello World!"
+    }
+}

@@ -40,6 +40,18 @@ const check = (name, got, exp) => {
     await p.waitForFunction(() => document.getElementById('log').textContent === '');
     check('atmos: reset then run', await p.getAttribute('#log', 'class') === 'error', false);
 
+    // hello (the example of the landing): runs, two exercises, and its
+    // link to birds opens birds in the same page
+    await open('hello');
+    check('hello: one step', await p.locator('#step option').count(), 1);
+    check('hello: two exercises', await p.locator('#text h3:has-text("Exercises") + ol > li').count(), 2);
+    await p.click('#run');
+    await fr.locator('#end').waitFor({ state: 'visible', timeout: 15000 });
+    check('hello: the output', (await fr.locator('#out').textContent()).trim().split('\n'), Array(4).fill('Hello World!'));
+    await p.click('#text a:has-text("Birds")');
+    await p.waitForFunction(() => document.getElementById('text').dataset.step === '1');
+    check('hello: the link to birds', new URL(p.url()).pathname, '/atmos/guide/birds/');
+
     // birds (pico): a canvas appears in the runner
     await open('birds');
     check('birds: the steps', await p.locator('#step option').count(), 11);

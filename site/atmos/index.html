@@ -9,9 +9,6 @@
   header img { width: 120px; float: right; margin-left: 1em; }
   h1    { font-size: 1.6em; margin-bottom: 0; }
   .sub  { color: #666; margin-top: .2em; font-style: italic; }
-  .ex   { display: flex; flex-wrap: wrap; gap: 1em; align-items: flex-start; clear: both; }
-  .ex pre { flex: 1 1 16em; margin: 0; padding: .8em; background: #f4f4f4; font-size: 15px; }
-  .ex img { max-width: 100%; }
   .try  { display: inline-block; padding: .4em 1em; margin: .3em .3em 0 0; border: 1px solid #0645ad; border-radius: 4px; text-decoration: none; }
   code  { background: #f4f4f4; padding: 0 3px; }
   footer { margin-top: 2em; border-top: 1px solid #ccc; padding-top: 1em; }
@@ -21,12 +18,12 @@
 </head>
 <body>
 
-<p><a href="../">&larr; Structured Event-Driven Concurrency</a></p>
+<p><a href="../">&larr; Structured Reactive Concurrency</a></p>
 
 <header>
-  <img src="../img/atmos-logo.png" alt="">
+  <img src="../imgs/atmos-logo.png" alt="">
   <h1>The Programming Language Atmos</h1>
-  <p class="sub">Structured Event-Driven Concurrency</p>
+  <p class="sub">Structured Reactive Concurrency</p>
 </header>
 
 <p>
@@ -37,25 +34,16 @@ block that holds them. Atmos is inspired by synchronous languages such as
 <a href="../ceu/">Céu</a> and Esterel.
 </p>
 
-<h2>This is what Atmos looks like</h2>
-<div class="ex">
-<pre>watching 5s {
-    loop on 1s {
-        print "Hello World!"
-    }
-}</pre>
-<img src="../img/atmos-hello.gif" alt="the program running: Hello World! four times, then the program ends">
-</div>
-<p>During 5 seconds, prints <code>Hello World!</code> every second.
-The <code>watching</code> runs its block for 5 seconds, then aborts it;
-the <code>loop on</code> runs its body every second.</p>
-
-<p>
-<a class="try" href="guide/atmos/"><b>Online tutorial</b></a>
-<a class="try" href="guide/birds/">Birds: a game, step by step</a>
-</p>
-<p>The tutorials run in your browser: each step shows its text, its program,
-and the program running.</p>
+<h2>Try it</h2>
+<p><a class="try" href="guide/hello/"><b>Start here: the first program &rarr;</b></a></p>
+<p>Then, in your browser, each step with its text, its program, and the
+program running:</p>
+<ol>
+  <li><a href="guide/birds/">Birds</a>: a small game in 11 steps, with graphics.
+      The fastest way through the features of Atmos. <b>Recommended.</b></li>
+  <li><a href="guide/atmos/">A tour of Atmos</a>: the guide of the language.</li>
+  <li>The guide of pico, the graphics library (soon).</li>
+</ol>
 
 <h2>Features</h2>
 <ul>
@@ -69,8 +57,9 @@ and the program running.</p>
 
 <h2>Learn</h2>
 <ul>
-  <li><a href="guide/atmos/">Online tutorial</a>: the guide of the language, step by step</li>
-  <li><a href="guide/birds/">Birds</a>: a game with pico, step by step</li>
+  <li><a href="guide/hello/">The first program</a>, then
+      <a href="guide/birds/">Birds</a> (a game, step by step) and
+      <a href="guide/atmos/">A tour of Atmos</a> (the guide of the language)</li>
   <li><a href="https://github.com/ia-atmos/lang/blob/main/doc/manual.md">Manual</a></li>
   <li><a href="https://fsantanna.github.io/toy.html">A toy problem</a>: drag, click, or cancel</li>
   <li><a href="../#academic-papers">Academic papers</a></li>
@@ -88,8 +77,8 @@ and the program running.</p>
 </ul>
 
 <footer>
-  <a href="http://www.lua.inf.puc-rio.br/"><img src="../img/lablua.png" alt="LabLua, PUC-Rio"></a>
-  <a href="https://www.uerj.br/"><img src="../img/uerj.gif" alt="UERJ"></a>
+  <a href="http://www.lua.inf.puc-rio.br/"><img src="../imgs/lablua.png" alt="LabLua, PUC-Rio"></a>
+  <a href="https://www.uerj.br/"><img src="../imgs/uerj.gif" alt="UERJ"></a>
 </footer>
 
 </body>

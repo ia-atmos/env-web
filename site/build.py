@@ -2,7 +2,7 @@
 # Builds the static site: python3 site/build.py [outdir] [jobs]
 #
 #   <outdir>/index.html                  the landing page (site/index.html)
-#   <outdir>/img/, papers/               its images and papers
+#   <outdir>/imgs/, pdfs/               its images and papers
 #   <outdir>/atmos/index.html            the page of Atmos
 #   <outdir>/atmos/ide.{html,js,wasm}    the player (ide/ide.atm)
 #   <outdir>/atmos/guide/<name>/         the player for a guide
@@ -71,12 +71,12 @@ def main ():
     marker = os.path.join(SITE, '.env-web-site')
     if os.listdir(SITE) and not os.path.exists(marker):
         sys.exit('build.py : %s is not empty and was not made by this build' % SITE)
-    for d in ('img', 'papers', 'atmos'):
+    for d in ('imgs', 'pdfs', 'atmos'):
         shutil.rmtree(os.path.join(SITE, d), ignore_errors=True)
     open(marker, 'w').write('the files of this folder are made by site/build.py of ia-atmos/env-web\n')
     # the static pages
     shutil.copy(os.path.join(HERE, 'index.html'), SITE)
-    for d in ('img', 'papers', 'atmos'):
+    for d in ('imgs', 'pdfs', 'atmos'):
         shutil.copytree(os.path.join(HERE, d), os.path.join(SITE, d))
 
     ok, err = serve.build([os.path.join(HERE, '..', 'ide', 'ide.atm'), OUT])
