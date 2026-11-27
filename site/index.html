@@ -55,14 +55,14 @@
 <div class="code">
 <pre>watching 5s {
     loop i {
-        print("Closing in " ++ tostring(5-i) ++ "s...")
+        print("Tick " ++ i)
         await 1s
     }
 }
 print "Bye!"</pre>
-<p>During five seconds, counts down every second.</p>
+<p>During 5 seconds, counts a tick every second.</p>
 </div>
-<img src="imgs/atmos-hello.gif" alt="the program running: Closing in 5s... down to Closing in 1s..., one per second, then Bye!">
+<img src="imgs/atmos-hello.gif" alt="the program running: Tick 0 to Tick 4, one per second, then Bye!">
 </div>
 
 <h2>Features</h2>

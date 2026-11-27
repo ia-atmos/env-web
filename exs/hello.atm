@@ -1,6 +1,6 @@
 watching 5s {
     loop i {
-        print("Closing in " ++ tostring(5-i) ++ "s...")
+        print("Tick " ++ i)
         await 1s
     }
 }

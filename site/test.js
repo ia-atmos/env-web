@@ -50,7 +50,7 @@ const check = (name, got, exp) => {
     check('hello: the guides, in order', await p.locator('#guides option').evaluateAll(os => os.map(o => o.value)), ['hello', 'birds', 'atmos']);
     await p.click('#run');
     await fr.locator('#end').waitFor({ state: 'visible', timeout: 15000 });
-    check('hello: the output', (await fr.locator('#out').textContent()).trim().split('\n'), ['Closing in 5s...', 'Closing in 4s...', 'Closing in 3s...', 'Closing in 2s...', 'Closing in 1s...', 'Bye!']);
+    check('hello: the output', (await fr.locator('#out').textContent()).trim().split('\n'), ['Tick 0', 'Tick 1', 'Tick 2', 'Tick 3', 'Tick 4', 'Bye!']);
     await p.click('#text a:has-text("Birds")');
     await p.waitForFunction(() => document.getElementById('text').dataset.step === '1');
     check('hello: the link to birds', new URL(p.url()).pathname, '/atmos/guide/birds/');
