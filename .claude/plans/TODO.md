@@ -109,3 +109,4 @@ Items put to the author are local to this session (`#1`, `#2`, ...;
 | 64 | The cards of the landing | the author: no "Atmos ->" / "Céu ->"; "Try Atmos online" centered at the bottom of the Atmos card (not at the top any more); "Old site" centered at the bottom of the Céu card. Open: remove the page of Atmos (GitHub is enough?) |
 | 65 | The page of Atmos | the author: a, its content removed (all of it is in the README of lang or in the player); `atmos/` sends to github.com/ia-atmos/lang, and so does the logo of Atmos on the landing |
 | 66 | The logo of Céu | the author: also to GitHub: github.com/ceu-lang/ceu (the compiler, as the logo of Atmos goes to ia-atmos/lang) |
+| 67 | "Only the programs of the guide run here" still shown | the published player was new; DreamHost sends `max-age=172800` (2 days), so the browser kept the old ide.js and ide.wasm. `site/.htaccess`: `Cache-Control: no-cache` (revalidate, 304 when unchanged) |

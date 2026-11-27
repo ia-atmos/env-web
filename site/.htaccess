@@ -1,0 +1,10 @@
+# The site changes at each publish: the browser asks the server whether a
+# file changed (a short answer, 304, when it did not), instead of using
+# its copy for days. Above all the player (atmos/ide.js, ide.wasm), whose
+# old copy, with a new page, breaks the guides.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|js|wasm|data|json|txt|gif|png|ico)$|^(info|text|code)$">
+    Header set Cache-Control "no-cache"
+    Header unset Expires
+  </FilesMatch>
+</IfModule>

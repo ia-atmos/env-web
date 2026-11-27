@@ -81,6 +81,7 @@ def main ():
     for d in ('imgs', 'pdfs', 'atmos'):
         shutil.copytree(os.path.join(HERE, d), os.path.join(SITE, d))
     shutil.copy(os.path.join(HERE, 'favicon.ico'), SITE)
+    shutil.copy(os.path.join(HERE, '.htaccess'), SITE)      # no stale copies after a publish
 
     ok, err = serve.build([os.path.join(HERE, '..', 'ide', 'ide.atm'), OUT])
     if not ok:
