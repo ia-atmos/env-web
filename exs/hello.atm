@@ -1,5 +1,13 @@
-watching 5s {
-    loop on 1s {
-        print "Hello World!"
+pico.open()
+var n = 0
+spawn {
+    loop on :draw {
+        pico.output.draw.line(['!', x=0,y=0],  ['!', x=n,y=n])
+        pico.output.draw.line(['!', x=99,y=0], ['!', x=99-n,y=n])
     }
 }
+loop i in 100 {
+    set n = i
+    await 30ms
+}
+await :key.dn
