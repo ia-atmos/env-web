@@ -46,12 +46,20 @@ const check = (name, got, exp) => {
     check('hello: one step', await p.locator('#step option').count(), 1);
     check('hello: two exercises', await p.locator('#text h3:has-text("Exercises") + ol > li').count(), 2);
     check('hello: the mode', await p.inputValue('#mode'), 'text');
+    check('hello: the mode is fixed', await p.isDisabled('#mode'), true);
+    check('hello: the guides, in order', await p.locator('#guides option').evaluateAll(os => os.map(o => o.value)), ['hello', 'birds', 'atmos']);
     await p.click('#run');
     await fr.locator('#end').waitFor({ state: 'visible', timeout: 15000 });
     check('hello: the output', (await fr.locator('#out').textContent()).trim().split('\n'), ['5', '4', '3', '2', '1', 'Liftoff!']);
     await p.click('#text a:has-text("Birds")');
     await p.waitForFunction(() => document.getElementById('text').dataset.step === '1');
     check('hello: the link to birds', new URL(p.url()).pathname, '/atmos/guide/birds/');
+
+    // the choice of guide opens another one
+    await p.selectOption('#guides', 'atmos');
+    await p.waitForURL(/guide\/atmos\/$/);
+    await p.waitForFunction(() => document.getElementById('text').dataset.step === '1');
+    check('guides: the choice opens the guide', await p.inputValue('#guides'), 'atmos');
 
     // birds (pico): a canvas appears in the runner
     await open('birds');
@@ -63,6 +71,8 @@ const check = (name, got, exp) => {
     await p.waitForTimeout(1500);
     if (SHOTS) await p.screenshot({ path: SHOTS + '/site-birds-3.png' });
     check('birds: step 3 has a canvas', await fr.locator('canvas').count(), 1);
+    const box = await fr.locator('canvas').boundingBox(), vp = await p.locator('#runner').boundingBox();
+    check('birds: the canvas is centered', Math.abs((box.y + box.height/2) - (vp.y + vp.height/2)) < 3, true);
 
     // the landing page and the page of Atmos: every local link and image exists
     for (const page of ['/', '/atmos/']) {

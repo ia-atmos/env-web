@@ -173,6 +173,16 @@ def sourced (g):
         pos, lead = end, nxt
     g['steps'] = steps
 
+# The guides, for the choice in the page: the path of the tutorial first.
+ORDER = ['hello', 'birds', 'atmos']
+def guides ():
+    names = [f[:-3] for f in os.listdir(GUIDES) if f.endswith('.md')]
+    return sorted(names, key=lambda n: (ORDER.index(n) if n in ORDER else len(ORDER), n))
+
+def options ():
+    return ''.join('<option value="%s">%s</option>' % (n, html.escape(guide(n)['title']))
+                   for n in guides())
+
 def build (args):
     p = subprocess.run([TOOL] + args, capture_output=True, text=True, timeout=300)
     err = '\n'.join(l for l in (p.stdout + p.stderr).splitlines()
@@ -192,11 +202,12 @@ class Handler (SimpleHTTPRequestHandler):
     def do_GET (self):
         path = urlparse(self.path).path
         # the page of the IDE, with the name of its guide (or none)
-        m = re.fullmatch(r'/guide/([a-z0-9-]+)', path)
+        m = re.fullmatch(r'/guide/([a-z0-9-]+)/?', path)
         if path == '/' or (m and guide(m.group(1))):
             page = open(os.path.join(OUT, 'ide.html'), encoding='utf-8').read()
             name = m.group(1) if m else ''
             page = page.replace('<head>', '<head><base href="/"><meta id="guide" content="%s"><meta id="static" content="">' % name, 1)
+            page = page.replace('<option>GUIDES</option>', options(), 1)
             return self.answer(200, page, 'text/html')
         m = re.fullmatch(r'/g/([a-z0-9-]+)/(info|(\d+)/(text|code))', path)
         if m:

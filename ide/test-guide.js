@@ -21,7 +21,8 @@ const open = async (b, name, title, mode, n) => {
     p.on('pageerror', e => p.errs.push(e.message));
     await p.goto(BASE + '/guide/' + name);
     await p.waitForFunction(() => document.getElementById('text').dataset.step === '1');
-    check(name + ': the title', await p.textContent('#title'), title);
+    check(name + ': the guide', await p.inputValue('#guides'), name);
+    check(name + ': its title', await p.locator('#guides option:checked').textContent(), title);
     check(name + ': the mode', await p.inputValue('#mode'), mode);
     check(name + ': the steps', await p.locator('#step option').count(), n);
     const exs = [];

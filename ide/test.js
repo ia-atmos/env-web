@@ -16,6 +16,9 @@ const check = (name, got, exp) => {
     p.on('pageerror', e => errs.push(e.message));
     await p.goto(URL);
     await p.waitForTimeout(500);
+    check('the first mode is text', await p.inputValue('#mode'), 'text');
+    check('the sample of the mode text', (await p.inputValue('#code')).startsWith(';; Only'), true);
+    await p.selectOption('#mode', 'web');
     check('the sample of the mode web', (await p.inputValue('#code')).startsWith(';; The DOM'), true);
 
     // web: run, then use the program inside the frame

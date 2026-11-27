@@ -22,12 +22,12 @@
 <div id="bar">
   <b>Atmos</b>
   <select id="mode">
+    <option value="text">text (print and time)</option>
     <option value="web">web (the DOM)</option>
     <option value="pico">pico (graphics)</option>
-    <option value="text">text (print and time)</option>
   </select>
   <span class="guide-only">
-    <b id="title"></b>
+    <select id="guides" onchange="location.href = 'guide/' + this.value + '/'"><option>GUIDES</option></select>
     <button id="prev">&lt;</button>
     <select id="step"></select>
     <button id="next">&gt;</button>

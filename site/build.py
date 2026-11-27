@@ -92,7 +92,8 @@ def main ():
         put(os.path.join(OUT, 'g', name, 'info'), '%s\n%s\n%d' % (g['title'], g['mode'], n))
         put(os.path.join(OUT, 'guide', name, 'index.html'),
             page.replace('<head>', '<head><base href="../../"><meta id="guide" content="%s">'
-                                   '<meta id="static" content="1">' % name, 1))
+                                   '<meta id="static" content="1">' % name, 1)
+                .replace('<option>GUIDES</option>', serve.options(), 1))
         jobs += [(g, name, i+1, s) for i, s in enumerate(g['steps'])]
 
     # the first build of each mode makes its libraries (cached): alone
