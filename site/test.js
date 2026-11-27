@@ -58,6 +58,7 @@ const check = (name, got, exp) => {
     check('hello: two exercises', await p.locator('#text h3:has-text("Exercises") + ol > li').count(), 2);
     check('hello: the mode', await p.inputValue('#mode'), 'text');
     check('hello: the mode is fixed', await p.isDisabled('#mode'), true);
+    check('hello: the logo goes to the landing', [new URL(await p.locator('#home').evaluate(a => a.href)).pathname, await p.locator('#home img').evaluate(i => i.naturalWidth > 0)], ['/', true]);
     check('hello: the guides, in order', await p.locator('#guides option').evaluateAll(os => os.map(o => o.value)), ['hello', 'birds', 'atmos']);
     await p.click('#run');
     await fr.locator('#end').waitFor({ state: 'visible', timeout: 15000 });

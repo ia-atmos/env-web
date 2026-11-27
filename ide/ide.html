@@ -10,7 +10,8 @@
   #text pre { background: #f4f4f4; padding: 6px; overflow: auto; font-size: 12px; }
   .guide-only { display: none; }
   body.guide .guide-only { display: inline; }
-  #bar { grid-column: 1 / -1; padding: 6px 10px; background: #eee; border-bottom: 1px solid #ccc; }
+  #bar { grid-column: 1 / -1; padding: 6px 10px; background: #eee; border-bottom: 1px solid #ccc; display: flex; align-items: center; gap: .4em; flex-wrap: wrap; }
+  #home img { height: 22px; display: block; margin-right: .4em; }
   #code { font-family: monospace; font-size: 14px; padding: 8px; border: 0; border-right: 1px solid #ccc; resize: none; outline: none; tab-size: 4; }
   #out { position: relative; min-height: 0; }
   #runner { width: 100%; height: 100%; border: 0; background: #f8f8f8; display: block; }
@@ -24,7 +25,7 @@
 </head>
 <body id="body">
 <div id="bar">
-  <b>Atmos</b>
+  <a id="home" href="../" title="Structured Reactive Concurrency"><img src="../imgs/atmos-logo.png" alt="Atmos"></a>
   <select id="mode">
     <option value="text">text (print and time)</option>
     <option value="web">web (the DOM)</option>
