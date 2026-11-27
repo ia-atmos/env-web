@@ -1,0 +1,55 @@
+# Whether the published site (ceu-lang.org/new/) is the current one: it
+# reads version.txt of the site (the commits of env-web, lang and
+# env-pico that site.yml built) and fails if any of the three repos has
+# changed since then in what makes the site (not in its plans, .claude/,
+# nor, in env-web, in its workflows, tests, README, Makefile and .gitignore). Its badge is on
+# the landing page.
+#
+# It runs at each push to main, after each publish, and once a day (for
+# the changes in lang and env-pico).
+name: Published
+on:
+  push:
+    branches: [main]
+  workflow_run:
+    workflows: ["Publish the site"]
+    types: [completed]
+  schedule:
+    - cron: '17 9 * * *'
+  workflow_dispatch:
+jobs:
+  published:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Compare the published site with main
+        run: |
+          for t in 1 2 3 4 5; do
+              curl -sfL https://ceu-lang.org/new/version.txt -o version.txt && break
+              sleep 30        # the host may answer 429 (too many requests)
+          done
+          test -s version.txt || { echo "version.txt of the site could not be read"; exit 1; }
+          cat version.txt
+          git clone -q --filter=blob:none https://github.com/ia-atmos/lang.git ../lang
+          git clone -q --filter=blob:none https://github.com/ia-atmos/env-pico.git ../env-pico
+          old=0
+          while read repo sha; do
+              dir=../$repo; skip=":(exclude).claude"
+              if [ "$repo" = env-web ]; then
+                  dir=.; skip=":(exclude).claude :(exclude).github :(exclude)tst :(exclude)README.md :(exclude)Makefile :(exclude).gitignore"
+              fi
+              if ! git -C $dir cat-file -e "$sha^{commit}" 2>/dev/null; then
+                  echo "$repo: the published commit $sha is not in main"; old=1
+              elif ! git -C $dir diff --quiet "$sha" HEAD -- . $skip; then
+                  echo "$repo: main has changed since the published commit $sha:"
+                  git -C $dir log --oneline "$sha..HEAD" -- . $skip | head -20
+                  old=1
+              else
+                  echo "$repo: up to date"
+              fi
+          done < version.txt
+          exit $old

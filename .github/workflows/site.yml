@@ -29,6 +29,10 @@ jobs:
         run: |
           . ../emsdk/emsdk_env.sh
           python3 site/build.py out 4
+          # what was published, for published.yml
+          { echo "env-web $(git rev-parse HEAD)"
+            echo "lang $(git -C ../lang rev-parse HEAD)"
+            echo "env-pico $(git -C ../env-pico rev-parse HEAD)"; } > out/version.txt
       - name: Publish
         env:
           DH_SSH_KEY: ${{ secrets.DH_SSH_KEY }}

@@ -87,3 +87,4 @@ Items put to the author are local to this session (`#1`, `#2`, ...;
 | 39 | Theses and boards of the Lattes on the theme | the author: a, plus works not supervised by him but tied to his: added the PhD of A. Branco (2015, Maxwell) and the undergraduate project of C. Mattoso (2016, no PDF: its address answers 404) |
 | 41 | Who starts the first publish | the author: the session, from here (run 46043468468) |
 | 42 | When the site is built and published | the author: a: each push to main builds the site and runs the tests (`tests.yml`), publishing stays by hand (`site.yml`) |
+| 43 | Two badges on the landing | the author asked: whether the tests pass (the badge of `tests.yml`) and whether the published site is main (`published.yml`: reads `new/version.txt`, written by `site.yml` with the commits of env-web, lang and env-pico, and fails if any changed since, outside of plans, workflows, tests and README) |
