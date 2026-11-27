@@ -59,22 +59,14 @@ and no manual cleanup.
 <h2>This is what Atmos looks like</h2>
 <div class="ex">
 <pre>pico.open()
-var n = 0
-spawn {
-    loop on :draw {
-        pico.output.draw.line(['!', x=0,y=0],  ['!', x=n,y=n])
-        pico.output.draw.line(['!', x=99,y=0], ['!', x=99-n,y=n])
-    }
-}
 loop i in 100 {
-    set n = i
-    await 30ms
-}
-await :key.dn</pre>
-<img src="imgs/atmos-x.gif" alt="an X drawn gradually, in 3 seconds">
+    pico.output.draw.pixel ['!', x=i,    y=i]
+    pico.output.draw.pixel ['!', x=99-i, y=i]
+    pico.input.delay(30)
+}</pre>
+<img src="imgs/atmos-x.gif" alt="an X drawn pixel by pixel, in 3 seconds">
 </div>
-<p>A task redraws the two lines at every frame, while the main program
-advances them every 30 milliseconds.</p>
+<p>Draws an <code>X</code>, pixel by pixel, in 3 seconds.</p>
 <p><a class="try" href="atmos/guide/hello/"><b>Try it in the browser &rarr;</b></a></p>
 
 <h2>Features</h2>
@@ -129,6 +121,8 @@ advances them every 30 milliseconds.</p>
   <li>2009 [MSc] <a href="pdfs/luagravity_msc.pdf">A Synchronous Reactive Language based on Implicit Invocation</a></li>
   <li>2012 [TR] <a href="pdfs/ceu_tr.pdf">Céu: Embedded, Safe, and Reactive Programming</a></li>
   <li>2013 [PhD] <a href="pdfs/ceu_phd.pdf">Safe System-level Concurrency on Resource-Constrained Nodes with Céu</a></li>
+  <li>2015 [PhD] <a href="https://www.maxwell.vrac.puc-rio.br/26573/26573.PDF">Scripting Customized Components for Wireless Sensor Networks</a></li>
+  <li>2016 [UND] Desenvolvimento de Controlador de Experimentos OMF em Céu (in Portuguese)</li>
   <li>2018 [PhD] <a href="http://sunsite.informatik.rwth-aachen.de/Publications/AIB/2018/2018-05.pdf">Real-World Deployment and Evaluation of Synchronous Programming in Reactive Embedded Systems</a></li>
   <li>2018 [PhD] <a href="pdfs/gals-rodrigo.pdf">A GALS Approach for Programming Distributed Interactive Multimedia Applications</a></li>
   <li>2018 [UND] <a href="pdfs/guilherme-18.pdf">Aplicação em Sistemas Distribuídos utilizando biblioteca e driver próprios, baseados em interrupções desenvolvido em Céu para o microcontrolador Arduino</a> (in Portuguese)</li>

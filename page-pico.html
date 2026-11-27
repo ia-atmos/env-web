@@ -8,6 +8,15 @@
 <script>
 var Module = { canvas: document.getElementById('canvas') };
 Module.canvas.focus();
+// When the program ends, SDL closes its window and sets the canvas to
+// 0x0: the size is kept, so that the last picture stays on the page.
+for (const k of ['width', 'height']) {
+    const d = Object.getOwnPropertyDescriptor(HTMLCanvasElement.prototype, k);
+    Object.defineProperty(Module.canvas, k, {
+        get () { return d.get.call(this); },
+        set (v) { if (v > 0) d.set.call(this, v); },
+    });
+}
 </script>
 {{{ SCRIPT }}}
 </body>

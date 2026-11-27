@@ -6,24 +6,21 @@
 
 @code hello.atm
 
-The program draws an `X`, gradually, in 3 seconds. Click **Run** to see
-it.
+The program draws an `X`, pixel by pixel, in 3 seconds. Click **Run** to
+see it.
 
-Two things happen at the same time. A task, started with `spawn`, draws
-the two lines of the `X` at every frame of the screen (`loop on :draw`),
-up to the point `n`. The main program advances `n` by one every 30
-milliseconds (`await 30ms`). Neither knows about the other's timing:
-the task only draws, and the loop only counts.
-
-At the end, `await :key.dn` keeps the picture until a key is pressed
-(click on the picture first), and the program ends, with the task
-inside it.
+`pico.open()` opens the screen: 100 by 100 pixels, with a grid to help
+see where each one goes. The loop counts `i` from 0 to 99 and, at each
+turn, draws two pixels: one going down to the right (`x=i`), the other
+going down to the left (`x=99-i`). `pico.input.delay(30)` waits 30
+milliseconds before the next turn, so that the `X` appears little by
+little. Each pixel shows up as soon as it is drawn.
 
 ### Exercises
 
 1. Draw the `X` in 1 second.
-2. Add a third line, across the middle of the screen, that grows with
-   the other two.
+2. Draw also a horizontal line across the middle of the screen, growing
+   from the left at the same time as the `X`.
 
 ### Where to go next
 
