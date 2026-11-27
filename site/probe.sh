@@ -30,7 +30,10 @@ LIBC=$( (getconf GNU_LIBC_VERSION 2>/dev/null | sed 's/glibc //') || true)
 echo "glibc: ${LIBC:-unknown}"
 echo "cores: $(nproc 2>/dev/null || echo unknown)"
 echo "memory (MB):"; free -m 2>/dev/null | head -2
-echo "disk of \$HOME:"; df -h "$HOME" | tail -1
+echo "disk of \$HOME (the whole filesystem, not your share):"; df -h "$HOME" | tail -1
+if has timeout; then DU=$(timeout 60 du -sh "$HOME" 2>/dev/null | cut -f1); else DU=$(du -sh "$HOME" 2>/dev/null | cut -f1); fi
+echo "your usage in \$HOME: ${DU:-unknown}"
+if has quota; then echo "quota:"; quota -s 2>&1 | head -5; else echo "quota: the command does not exist"; fi
 echo "limits:"; ulimit -a 2>&1 | grep -i 'cpu\|memory\|processes\|file size\|virtual'
 echo "user: $(id -un), $(id -Gn | tr ' ' ',')"
 echo "load: $(cut -d' ' -f1-3 /proc/loadavg 2>/dev/null)"
@@ -61,7 +64,7 @@ has node && node --version 2>&1
 #
 say "a C program: compile and run"
 #
-T=$(mktemp -d 2>/dev/null || echo "$HOME/.probe-tmp")
+T="$HOME/.probe-tmp-$$"
 mkdir -p "$T"
 cat > "$T/t.c" <<'EOC'
 #include <stdio.h>
@@ -71,8 +74,20 @@ CC=cc; has cc || CC=gcc
 if "$CC" -O2 "$T/t.c" -o "$T/t" 2>"$T/err" && "$T/t"; then
     ok "compiled and ran with $CC"
 else
-    bad "the C program did not build or run"; cat "$T/err"
+    bad "the C program did not build or run in \$HOME"; cat "$T/err"
 fi
+# the system temporary directory is often mounted noexec: a build can
+# then only run its tools from \$HOME (the full stage sets TMPDIR there)
+TT=$(mktemp -d 2>/dev/null)
+if [ -n "$TT" ] && [ -x "$T/t" ]; then
+    cp "$T/t" "$TT/t" 2>/dev/null
+    if "$TT/t" >/dev/null 2>&1; then
+        ok "programs also run from $TT"
+    else
+        note "$TT does not allow running programs (noexec): the build must use a TMPDIR in \$HOME"
+    fi
+fi
+[ -n "$TT" ] && rm -rf "$TT"
 
 #
 say "memory: can one process hold 1 GB? (a compile of Emscripten needs several hundred MB)"
@@ -115,6 +130,9 @@ fi
 D=$HOME/atmos-probe
 mkdir -p "$D" || exit 1
 cd "$D" || exit 1
+mkdir -p "$D/tmp"
+export TMPDIR="$D/tmp"                  # the system one may be noexec
+NICE=""; has nice && NICE="nice -n 19"  # a shared machine: low priority
 try () { if "$@"; then ok "$*"; else bad "$* (status $?)"; fi; }
 
 say "the compiler of Atmos (git clone, make)"
@@ -129,7 +147,7 @@ say "Emscripten (emsdk, about 1 GB)"
 [ -d emsdk ] || try git clone -q --depth 1 https://github.com/emscripten-core/emsdk.git emsdk
 if [ -d emsdk ]; then
     T0=$(date +%s)
-    (cd emsdk && ./emsdk install latest >install.log 2>&1 && ./emsdk activate latest >>install.log 2>&1)
+    (cd emsdk && $NICE ./emsdk install latest >install.log 2>&1 && ./emsdk activate latest >>install.log 2>&1)
     echo "emsdk install/activate: status $? in $(( $(date +%s) - T0 )) s (log: $D/emsdk/install.log)"
     tail -2 emsdk/install.log
     . ./emsdk/emsdk_env.sh >/dev/null 2>&1
@@ -141,12 +159,31 @@ say "two pages of env-web (the first build also builds the libraries)"
 [ -d env-web ] || try git clone -q --depth 1 https://github.com/ia-atmos/env-web.git env-web
 if [ -x env-web/atmos-web ] && has emcc; then
     T0=$(date +%s)
-    ATMOS=$D/lang env-web/atmos-web env-web/exs/counter.atm out >build1.log 2>&1
+    ATMOS=$D/lang $NICE env-web/atmos-web env-web/exs/counter.atm out >build1.log 2>&1
     echo "web page, first build : status $? in $(( $(date +%s) - T0 )) s"; tail -3 build1.log
     T0=$(date +%s)
-    ATMOS=$D/lang env-web/atmos-web --text hello.atm out >build2.log 2>&1
+    ATMOS=$D/lang $NICE env-web/atmos-web --text hello.atm out >build2.log 2>&1
     echo "text page, second build: status $? in $(( $(date +%s) - T0 )) s"; tail -3 build2.log
     echo "wasm files built: $(ls out 2>/dev/null | grep -c wasm)"
+    # a heavier build, to see whether a long one is killed (about 16 CPU-seconds)
+    cp "$D/env-web/exs/counter.atm" pico.atm 2>/dev/null
+    if [ -d "$HOME/env-pico" ] || git clone -q --depth 1 https://github.com/ia-atmos/env-pico.git env-pico 2>/dev/null; then
+        cat > pico.atm <<'EOP'
+pico.open()
+spawn {
+    loop on :draw {
+        pico.output.draw.rect ['%', x=0.5, y=0.5, w=0.5, h=0.5]
+    }
+}
+await(:key.dn)
+EOP
+        T0=$(date +%s)
+        ATMOS=$D/lang PICO=$D/env-pico $NICE env-web/atmos-web --pico pico.atm out >build3.log 2>&1
+        echo "pico page (heavy): status $? in $(( $(date +%s) - T0 )) s"; tail -3 build3.log
+    else
+        note "env-pico could not be cloned: the pico build was not tried"
+    fi
+    grep -il 'killed\|cannot allocate\|out of memory' build*.log emsdk/install.log 2>/dev/null | sed 's/^/FAIL : a process was killed or ran out of memory, see /'
 fi
 
 say "done: the full stage"
