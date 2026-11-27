@@ -3,8 +3,10 @@
 # Run workflow). It needs the secret DH_SSH_KEY and the variables DH_HOST,
 # DH_USER and DH_DIR_PRO (the same as atmos-lang/web).
 #
-# Only <DH_DIR_PRO>/new/ is touched, and inside it `ceu/` is never
-# touched (the copy of the current site of Céu). The publish stops if
+# Only <DH_DIR_PRO>/new/ is touched, and inside it `ceu` is never
+# touched: the current site of Céu, a copy or a link (`ceu -> ../`); the
+# exclusion has no trailing slash, which would only match a directory and
+# let `--delete` remove the link. The publish stops if
 # new/ exists with files but without the marker `.env-web-site`, that is,
 # if it holds something that this workflow did not put there.
 name: Publish the site
@@ -43,5 +45,5 @@ jobs:
           # new/ must be absent, empty, or ours
           $SSH "$DH_USER@$DH_HOST" "D='$DH_DIR/new'; mkdir -p \"\$D\"; [ -z \"\$(ls -A \"\$D\" | grep -vx ceu)\" ] || [ -e \"\$D/.env-web-site\" ]" \
             || { echo "$DH_DIR/new holds files that this workflow did not put there: stopped"; exit 1; }
-          rsync -rlz --delete --exclude '/ceu/' -e "$SSH" out/ "$DH_USER@$DH_HOST:$DH_DIR/new/"
+          rsync -rlz --delete --exclude '/ceu' -e "$SSH" out/ "$DH_USER@$DH_HOST:$DH_DIR/new/"
           rm -f ~/.ssh/id_deploy
