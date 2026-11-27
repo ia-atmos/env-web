@@ -10,7 +10,7 @@
   .sub  { color: #666; margin-top: .2em; }
   .two  { display: flex; flex-wrap: wrap; gap: 1em; }
   .two > div { flex: 1 1 18em; border: 1px solid #ccc; padding: 0 1em 1em; }
-  .two h2 img { height: 40px; float: right; }
+  .go img { height: 32px; vertical-align: middle; margin-left: .6em; }
   .tag  { font-size: .75em; padding: 1px 6px; border: 1px solid; border-radius: 3px; vertical-align: middle; }
   .ex   { display: flex; flex-wrap: wrap; gap: 1em; align-items: flex-start; }
   .ex pre { flex: 1 1 16em; overflow: auto; margin: 0; padding: .8em; background: #f4f4f4; font-size: 15px; }
@@ -34,16 +34,16 @@
 
 <div class="two">
   <div>
-    <h2><a href="atmos/"><img src="imgs/atmos-logo.png" alt=""></a> Atmos <span class="tag" style="color:#080">active</span></h2>
+    <h2>Atmos <span class="tag" style="color:#080">active</span></h2>
     <p>The current language. Tasks, events and pools with lexical scope.
        Compiles to C, and runs in the browser.</p>
-    <p><a href="atmos/"><b>Atmos &rarr;</b></a></p>
+    <p class="go"><a href="atmos/"><b>Atmos &rarr;</b></a> <a href="atmos/"><img src="imgs/atmos-logo.png" alt="Atmos"></a></p>
   </div>
   <div>
-    <h2><a href="ceu/"><img src="imgs/ceu.png" alt=""></a> Céu <span class="tag" style="color:#888">research</span></h2>
+    <h2>Céu <span class="tag" style="color:#888">research</span></h2>
     <p>The original language, since 2011: <i>Structured Synchronous Reactive
        Programming</i>. Arduino, wireless sensor networks, games, multimedia.</p>
-    <p><a href="ceu/"><b>Céu &rarr;</b></a></p>
+    <p class="go"><a href="ceu/"><b>Céu &rarr;</b></a> <a href="ceu/"><img src="imgs/ceu.png" alt="Céu"></a></p>
   </div>
 </div>
 
@@ -61,17 +61,17 @@
 
 <h2>Features</h2>
 <ul>
-  <li>Structured event handling: <code>await</code> an event, as any other statement</li>
-  <li>Synchronous and discrete execution, with deterministic scheduling</li>
-  <li>Concurrency with lexical scope: abortion and finalization are safe</li>
-  <li>Small memory footprint, no tracing garbage collector</li>
-  <li>Seamless integration with C</li>
+  <li><b>Structured:</b> each line of execution belongs to a block; when the
+      block ends, everything inside it is aborted and finalized.</li>
+  <li><b>Reactive:</b> waiting is a statement; a program awaits events in
+      sequence, with no callbacks.</li>
+  <li><b>Concurrency:</b> lines of execution run side by side, with
+      deterministic, synchronous scheduling.</li>
 </ul>
 
 <h2>Contact</h2>
 <ul>
-  <li>Francisco Sant'Anna (developer): francisco [at] ime.uerj.br,
-      <a href="https://github.com/fsantanna">github.com/fsantanna</a></li>
+  <li>Developer: Francisco Sant'Anna (<a href="mailto:francisco@ime.uerj.br">francisco@ime.uerj.br</a>)</li>
   <li><a href="https://groups.google.com/g/ceu-lang">Mailing list</a> (Céu &amp; Atmos)</li>
   <li>GitHub: <a href="https://github.com/ia-atmos">ia-atmos</a> (Atmos),
       <a href="https://github.com/ceu-lang">ceu-lang</a> (Céu)</li>
