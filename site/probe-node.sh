@@ -89,6 +89,9 @@ else
 fi
 
 say "pages (low priority)"
+# the clones of the earlier run may be old: bring them to the latest
+for r in env-web lang env-pico; do [ -d "$D/$r/.git" ] && git -C "$D/$r" pull -q 2>&1 | tail -1; done
+[ -x "$D/lang/atmos" ] && make -s -C "$D/lang" atmos >/dev/null 2>&1
 step () {
     T0=$(date +%s); L=$1; shift
     "$@" >"$D/$L.log" 2>&1; S=$?
