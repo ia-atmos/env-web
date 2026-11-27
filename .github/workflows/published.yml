@@ -5,12 +5,12 @@
 # nor, in env-web, in its workflows, tests, README, Makefile and .gitignore). Its badge is on
 # the landing page.
 #
-# It runs at each push to main, after each publish, and once a day (for
-# the changes in lang and env-pico).
+# It runs after each publish, and once a day (for a push that was not
+# published, and for the changes in lang and env-pico). Not at each push:
+# the site is published right after each change (plans, #48), so a check
+# at the push would only fail before the publish ends.
 name: Published
 on:
-  push:
-    branches: [main]
   workflow_run:
     workflows: ["Publish the site"]
     types: [completed]
