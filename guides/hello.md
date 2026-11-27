@@ -6,15 +6,15 @@
 
 @code hello.atm
 
-The program counts down from 5, one number per second, and then prints
-`Liftoff!`. Click **Run** to see it.
+The program counts down from 5, one line per second, and then prints
+`Bye!`. Click **Run** to see it.
 
 `loop i` repeats its body forever, with `i` counting from 0: it prints
-`5 - i` and awaits one second. `watching 5s` runs its block for 5
-seconds, and then aborts it, wherever it is: here, while the loop awaits
-its fifth second, so `0` is never printed. Nothing in the loop knows
-about the 5 seconds. Then the program goes on after the block, and
-prints `Liftoff!`.
+`Closing in` with `5 - i` seconds, and awaits one second. `watching 5s`
+runs its block for 5 seconds, and then aborts it, wherever it is: here,
+while the loop awaits its fifth second, so `Closing in 0s` is never
+printed. Nothing in the loop knows about the 5 seconds. Then the program
+goes on after the block, and prints `Bye!`.
 
 This is the idea of Atmos: a block that ends takes everything inside it
 along.
@@ -22,7 +22,7 @@ along.
 ### Exercises
 
 1. Count down from 10, one number every half second.
-2. Change only the `watching`, so that the countdown stops after `3`.
+2. Change only the `watching`, so that the countdown stops after `Closing in 3s`.
 
 ### Where to go next
 

@@ -56,14 +56,14 @@
 <div class="code">
 <pre>watching 5s {
     loop i {
-        print(5 - i)
+        print("Closing in " ++ tostring(5 - i) ++ "s")
         await 1s
     }
 }
-print "Liftoff!"</pre>
-<p>Counts down from 5, one per second. At 5 seconds, the <code>watching</code> aborts the loop before it prints 0.</p>
+print "Bye!"</pre>
+<p>Counts down from 5, one per second. At 5 seconds, the <code>watching</code> aborts the loop before it reaches 0, and the program says <code>Bye!</code>.</p>
 </div>
-<img src="imgs/atmos-hello.gif" alt="the program running: 5, 4, 3, 2, 1, one per second, then Liftoff!">
+<img src="imgs/atmos-hello.gif" alt="the program running: Closing in 5s down to Closing in 1s, one per second, then Bye!">
 </div>
 
 <h2>Features</h2>
