@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Programming Language Atmos</title>
+<style>
+  body  { max-width: 50em; margin: 0 auto; padding: 1em; font: 17px/1.5 sans-serif; color: #222; }
+  header img { width: 120px; float: right; margin-left: 1em; }
+  h1    { font-size: 1.6em; margin-bottom: 0; }
+  .sub  { color: #666; margin-top: .2em; font-style: italic; }
+  .ex   { display: flex; flex-wrap: wrap; gap: 1em; align-items: flex-start; clear: both; }
+  .ex pre { flex: 1 1 16em; margin: 0; padding: .8em; background: #f4f4f4; font-size: 15px; }
+  .ex img { max-width: 100%; }
+  .try  { display: inline-block; padding: .4em 1em; margin: .3em .3em 0 0; border: 1px solid #0645ad; border-radius: 4px; text-decoration: none; }
+  code  { background: #f4f4f4; padding: 0 3px; }
+  footer { margin-top: 2em; border-top: 1px solid #ccc; padding-top: 1em; }
+  footer img { height: 50px; margin-right: 1.5em; vertical-align: middle; }
+  a { color: #0645ad; }
+</style>
+</head>
+<body>
+
+<p><a href="../">&larr; Structured Event-Driven Concurrency</a></p>
+
+<header>
+  <img src="../img/atmos-logo.png" alt="">
+  <h1>The Programming Language Atmos</h1>
+  <p class="sub">Structured Event-Driven Concurrency</p>
+</header>
+
+<p>
+Atmos reconciles <i>structured concurrency</i> and <i>event-driven
+programming</i>. A program is made of tasks that await events and run side by
+side, with deterministic scheduling, and that live in the lexical scope of the
+block that holds them. Atmos is inspired by synchronous languages such as
+<a href="../ceu/">Céu</a> and Esterel.
+</p>
+
+<h2>This is what Atmos looks like</h2>
+<div class="ex">
+<pre>watching 5s {
+    loop on 1s {
+        print "Hello World!"
+    }
+}</pre>
+<img src="../img/atmos-hello.gif" alt="the program running: Hello World! four times, then the program ends">
+</div>
+<p>During 5 seconds, prints <code>Hello World!</code> every second.
+The <code>watching</code> runs its block for 5 seconds, then aborts it;
+the <code>loop on</code> runs its body every second.</p>
+
+<p>
+<a class="try" href="guide/atmos/"><b>Online tutorial</b></a>
+<a class="try" href="guide/birds/">Birds: a game, step by step</a>
+</p>
+<p>The tutorials run in your browser: each step shows its text, its program,
+and the program running.</p>
+
+<h2>Features</h2>
+<ul>
+  <li><code>task</code>: a line of execution with deterministic scheduling and safe abortion</li>
+  <li><code>await</code> and <code>emit</code>: tasks wait for events and signal them</li>
+  <li><code>par</code>, <code>watching</code>, <code>every</code>: structured compositions of tasks</li>
+  <li><code>tasks</code> and <code>pin</code>: pools of tasks attached to a lexical scope</li>
+  <li>Compiles to C: no virtual machine, no interpreter, no tracing garbage collector</li>
+  <li>Runs on the desktop (SDL, raylib, pico-sdl) and in the browser (WebAssembly)</li>
+</ul>
+
+<h2>Learn</h2>
+<ul>
+  <li><a href="guide/atmos/">Online tutorial</a>: the guide of the language, step by step</li>
+  <li><a href="guide/birds/">Birds</a>: a game with pico, step by step</li>
+  <li><a href="https://github.com/ia-atmos/lang/blob/main/doc/manual.md">Manual</a></li>
+  <li><a href="https://fsantanna.github.io/toy.html">A toy problem</a>: drag, click, or cancel</li>
+  <li><a href="../#academic-papers">Academic papers</a></li>
+  <li><a href="https://groups.google.com/g/ceu-lang">Mailing list</a></li>
+</ul>
+
+<h2>Download</h2>
+<ul>
+  <li><a href="https://github.com/ia-atmos/lang">Atmos</a>: the compiler (C and <code>make</code>)</li>
+  <li>Environments:
+    <a href="https://github.com/ia-atmos/env-pico">pico</a>,
+    <a href="https://github.com/ia-atmos/env-sdl">SDL</a>,
+    <a href="https://github.com/ia-atmos/env-web">web</a></li>
+  <li>All on <a href="https://github.com/ia-atmos">GitHub</a></li>
+</ul>
+
+<footer>
+  <a href="http://www.lua.inf.puc-rio.br/"><img src="../img/lablua.png" alt="LabLua, PUC-Rio"></a>
+  <a href="https://www.uerj.br/"><img src="../img/uerj.gif" alt="UERJ"></a>
+</footer>
+
+</body>
+</html>

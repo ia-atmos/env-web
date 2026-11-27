@@ -1,0 +1,47 @@
+# Builds the site (site/build.py) and publishes it to <DH_DIR_PRO>/new/ on
+# the host, over SSH. Started by hand only (Actions, "Publish the site",
+# Run workflow). It needs the secret DH_SSH_KEY and the variables DH_HOST,
+# DH_USER and DH_DIR_PRO (the same as atmos-lang/web).
+#
+# Only <DH_DIR_PRO>/new/ is touched, and inside it `ceu/` is never
+# touched (the copy of the current site of Céu). The publish stops if
+# new/ exists with files but without the marker `.env-web-site`, that is,
+# if it holds something that this workflow did not put there.
+name: Publish the site
+on:
+  workflow_dispatch:
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: The tools (lang, env-pico, emsdk)
+        run: |
+          git clone -q --depth 1 https://github.com/ia-atmos/lang.git ../lang
+          make -s -C ../lang atmos
+          git clone -q --depth 1 https://github.com/ia-atmos/env-pico.git ../env-pico
+          git clone -q --depth 1 https://github.com/emscripten-core/emsdk.git ../emsdk
+          (cd ../emsdk && ./emsdk install latest >/dev/null && ./emsdk activate latest >/dev/null)
+      - name: Build
+        run: |
+          . ../emsdk/emsdk_env.sh
+          python3 site/build.py out 4
+      - name: Publish
+        env:
+          DH_SSH_KEY: ${{ secrets.DH_SSH_KEY }}
+          DH_HOST: ${{ vars.DH_HOST }}
+          DH_USER: ${{ vars.DH_USER }}
+          DH_DIR: ${{ vars.DH_DIR_PRO }}
+        run: |
+          test -n "$DH_SSH_KEY" -a -n "$DH_HOST" -a -n "$DH_USER" -a -n "$DH_DIR" || { echo "DH_SSH_KEY, DH_HOST, DH_USER or DH_DIR_PRO is not set"; exit 1; }
+          mkdir -p ~/.ssh
+          printf '%s\n' "$DH_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H "$DH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          SSH="ssh -i $HOME/.ssh/id_deploy -o BatchMode=yes"
+          # new/ must be absent, empty, or ours
+          $SSH "$DH_USER@$DH_HOST" "D='$DH_DIR/new'; mkdir -p \"\$D\"; [ -z \"\$(ls -A \"\$D\" | grep -vx ceu)\" ] || [ -e \"\$D/.env-web-site\" ]" \
+            || { echo "$DH_DIR/new holds files that this workflow did not put there: stopped"; exit 1; }
+          rsync -rlz --delete --exclude '/ceu/' -e "$SSH" out/ "$DH_USER@$DH_HOST:$DH_DIR/new/"
+          rm -f ~/.ssh/id_deploy

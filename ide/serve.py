@@ -193,7 +193,7 @@ class Handler (SimpleHTTPRequestHandler):
         if path == '/' or (m and guide(m.group(1))):
             page = open(os.path.join(OUT, 'ide.html'), encoding='utf-8').read()
             name = m.group(1) if m else ''
-            page = page.replace('<head>', '<head><base href="/"><meta id="guide" content="%s">' % name, 1)
+            page = page.replace('<head>', '<head><base href="/"><meta id="guide" content="%s"><meta id="static" content="">' % name, 1)
             return self.answer(200, page, 'text/html')
         m = re.fullmatch(r'/g/([a-z0-9-]+)/(info|(\d+)/(text|code))', path)
         if m:

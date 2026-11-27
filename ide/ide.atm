@@ -5,8 +5,13 @@
 ;; With a guide (the page /guide/<name>), it also shows the steps of the
 ;; guide: the text of a step, with its exercises, and its program in the
 ;; editor.
+;;
+;; In a static site (site/build.py) there is no server: each step comes
+;; with its page already compiled, and Run shows it while the program is
+;; as the guide gives it. An edited program needs a compile server.
 
-val guide = web.get("guide", "content")
+val guide  = web.get("guide",  "content")
+val static = web.get("static", "content") == "1"
 
 func sample () {
     web.set("code", "value", web.get("sample-" ++ web.get("mode", "value"), "value"))
@@ -20,7 +25,7 @@ task Samples () {
 }
 
 task Guide () {
-    val info = await web.fetch("/g/" ++ guide ++ "/info")
+    val info = await web.fetch("g/" ++ guide ++ "/info")
     val l1 = string.find(info.text, "\n")
     val l2 = string.find(info.text, "\n", l1+1)
     val n  = tonumber(string.sub(info.text, l2+1))
@@ -33,10 +38,15 @@ task Guide () {
 
     var i = 1
     loop {
-        val url = "/g/" ++ guide ++ "/" ++ tostring(i)
+        val url = "g/" ++ guide ++ "/" ++ tostring(i)
         web.set("step", "value", tostring(i))
         web.set("text", "innerHTML", (await web.fetch(url ++ "/text")).text)
-        web.set("code", "value",     (await web.fetch(url ++ "/code")).text)
+        val code = (await web.fetch(url ++ "/code")).text
+        web.set("code", "value", code)
+        if static {
+            web.set("code", "attr.data-orig", code)
+            web.set("code", "attr.data-page", url ++ "/main.html")
+        }
         web.set("text", "scrollTop", 0)
         web.set("text", "attr.data-step", tostring(i))    ;; the step shown
 
@@ -59,16 +69,28 @@ await :click [id="run"]
 loop {
     ;; another click starts over: a request in course is cancelled
     watching :click [id="run"] {
-        web.set("status", "text", "compiling...")
-        val url = "/run?mode=" ++ web.get("mode", "value") ++ "&guide=" ++ guide
-        val r = await web.fetch(url, [method="POST", body=web.get("code", "value")])
-        web.set("status", "text", "")
-        web.set("log", "class.error", !r.ok)
-        if r.ok {
-            web.set("log", "text", "")
-            web.set("runner", "src", r.text)
+        val code = web.get("code", "value")
+        if static {
+            if code == web.get("code", "attr.data-orig") {
+                web.set("log", "class.error", false)
+                web.set("log", "text", "")
+                web.set("runner", "src", web.get("code", "attr.data-page"))
+            } else {
+                web.set("log", "class.error", true)
+                web.set("log", "text", "This page has no compile server: only the programs of the guide run here.")
+            }
         } else {
-            web.set("log", "text", r.text)
+            web.set("status", "text", "compiling...")
+            val url = "run?mode=" ++ web.get("mode", "value") ++ "&guide=" ++ guide
+            val r = await web.fetch(url, [method="POST", body=code])
+            web.set("status", "text", "")
+            web.set("log", "class.error", !r.ok)
+            if r.ok {
+                web.set("log", "text", "")
+                web.set("runner", "src", r.text)
+            } else {
+                web.set("log", "text", r.text)
+            }
         }
         await(false)
     }

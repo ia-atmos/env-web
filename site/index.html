@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Structured Event-Driven Concurrency</title>
+<style>
+  body  { max-width: 50em; margin: 0 auto; padding: 1em; font: 17px/1.5 sans-serif; color: #222; }
+  h1    { font-size: 1.6em; margin-bottom: 0; }
+  .sub  { color: #666; margin-top: .2em; }
+  .two  { display: flex; flex-wrap: wrap; gap: 1em; }
+  .two > div { flex: 1 1 18em; border: 1px solid #ccc; padding: 0 1em 1em; }
+  .two img  { height: 60px; margin-top: 1em; }
+  .tag  { font-size: .75em; padding: 1px 6px; border: 1px solid; border-radius: 3px; vertical-align: middle; }
+  ul.papers li { margin-bottom: .4em; }
+  .year { color: #666; }
+  footer { margin-top: 2em; border-top: 1px solid #ccc; padding-top: 1em; }
+  footer img { height: 50px; margin-right: 1.5em; vertical-align: middle; }
+  a { color: #0645ad; }
+</style>
+</head>
+<body>
+
+<h1>Structured Event-Driven Concurrency</h1>
+<p class="sub">Programming languages for reactive systems: games, interfaces, embedded devices.</p>
+
+<p>
+A reactive program spends its life waiting: for a key, a click, a timer, a
+message. In these languages, waiting is a statement. A program awaits events in
+sequence, as plain structured code, and runs lines of execution side by side
+with deterministic scheduling. A line of execution lives inside a block: when
+the block ends, everything inside it is aborted and finalized, with no callbacks
+and no manual cleanup.
+</p>
+
+<div class="two">
+  <div>
+    <a href="atmos/"><img src="img/atmos-logo.png" alt="Atmos"></a>
+    <h2>Atmos <span class="tag" style="color:#080">active</span></h2>
+    <p>The current language. Tasks, events and pools with lexical scope.
+       Compiles to C, and runs in the browser.</p>
+    <p><a href="atmos/"><b>Atmos &rarr;</b></a></p>
+  </div>
+  <div>
+    <a href="ceu/"><img src="img/ceu.png" alt="Céu"></a>
+    <h2>Céu <span class="tag" style="color:#888">research</span></h2>
+    <p>The original language, since 2011: <i>Structured Synchronous Reactive
+       Programming</i>. Arduino, wireless sensor networks, games, multimedia.</p>
+    <p><a href="ceu/"><b>Céu &rarr;</b></a></p>
+  </div>
+</div>
+
+<h2>Features</h2>
+<ul>
+  <li>Structured event handling: <code>await</code> an event, as any other statement</li>
+  <li>Synchronous and discrete execution, with deterministic scheduling</li>
+  <li>Concurrency with lexical scope: abortion and finalization are safe</li>
+  <li>Small memory footprint, no tracing garbage collector</li>
+  <li>Seamless integration with C</li>
+</ul>
+
+<h2 id="academic-papers">Academic papers</h2>
+<ul class="papers">
+  <li><span class="year">2011</span> <a href="papers/ceu_sensys11.pdf">Céu: A Reactive Language for Wireless Sensor Networks</a> (SenSys Doctoral Colloquium)</li>
+  <li><span class="year">2012</span> <a href="papers/ceu_tr.pdf">Céu: Embedded, Safe, and Reactive Programming</a> (PUC-Rio technical report)</li>
+  <li><span class="year">2013</span> <a href="papers/ceu_phd.pdf">Safe System-level Concurrency on Resource-Constrained Nodes with Céu</a> (PhD thesis)</li>
+  <li><span class="year">2013</span> <a href="papers/ceu_rem13_pre.pdf">Advanced Control Reactivity for Embedded Systems</a> (REM)</li>
+  <li><span class="year">2013</span> <a href="papers/ceu_sensys13_pre.pdf">Safe Concurrent Abstractions for Wireless Sensor Networks</a> (SenSys)</li>
+  <li><span class="year">2014</span> <a href="papers/ceu_rebls14_pre.pdf">Structured Reactive Programming with Céu</a> (REBLS)</li>
+  <li><span class="year">2015</span> <a href="papers/ceu_mod15_pre.pdf">Structured Synchronous Reactive Programming with Céu</a> (Modularity)</li>
+  <li><span class="year">2015</span> <a href="papers/ceu_rebls15.pdf">Reactive Traversal of Recursive Data Types</a> (REBLS)</li>
+  <li><span class="year">2015</span> <a href="papers/terra_tosn15_pre.pdf">Terra: Flexibility and Safety in Wireless Sensor Networks</a> (TOSN)</li>
+  <li><span class="year">2016</span> <a href="papers/ceumedia_webmedia16_pre.pdf">Céu-Media: Local Inter-Media Synchronization Using Céu</a> (WebMedia)</li>
+  <li><span class="year">2017</span> <a href="papers/ceu_tecs17_pre.pdf">The Design and Implementation of the Synchronous Language Céu</a> (TECS)</li>
+  <li><span class="year">2018</span> <a href="papers/ceu_lctes18_pre.pdf">A Memory-Bounded, Deterministic and Terminating Semantics for the Synchronous Programming Language Céu</a> (LCTES)</li>
+  <li><span class="year">2018</span> <a href="papers/ceu_lctes18_short_pre.pdf">Transparent Standby for Low-Power, Resource-Constrained Embedded Systems: A Programming Language-Based Approach</a> (LCTES)</li>
+  <li><span class="year">2018</span> <a href="papers/gals-rodrigo.pdf">A GALS Approach for Programming Distributed Interactive Multimedia Applications</a> (PhD thesis, Rodrigo Santos)</li>
+  <li><span class="year">2018</span> <a href="http://sunsite.informatik.rwth-aachen.de/Publications/AIB/2018/2018-05.pdf">Real-World Deployment and Evaluation of Synchronous Programming in Reactive Embedded Systems</a> (PhD thesis, Matthias Terber)</li>
+  <li><span class="year">2018</span> <a href="papers/ceu_sbgames18_pre.pdf">Structured Synchronous Reactive Programming for Game Development: Rewriting Pingus from C++ to Céu</a> (SBGames)</li>
+  <li><span class="year">2018</span> <a href="papers/ceu_rebls18.pdf">Where Do Events Come From? Reactive and Energy-Efficient Programming From The Ground Up</a> (REBLS)</li>
+</ul>
+
+<h2>Contact</h2>
+<ul>
+  <li><a href="https://groups.google.com/g/ceu-lang">Mailing list</a> (Céu &amp; Atmos)</li>
+  <li>GitHub: <a href="https://github.com/ia-atmos">ia-atmos</a> (Atmos),
+      <a href="https://github.com/ceu-lang">ceu-lang</a> (Céu)</li>
+</ul>
+
+<footer>
+  <a href="http://www.lua.inf.puc-rio.br/"><img src="img/lablua.png" alt="LabLua, PUC-Rio"></a>
+  <a href="https://www.uerj.br/"><img src="img/uerj.gif" alt="UERJ"></a>
+</footer>
+
+</body>
+</html>
