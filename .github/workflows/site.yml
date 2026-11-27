@@ -1,9 +1,9 @@
-# Builds the site (site/build.py) and publishes it to <DH_DIR_PRO>/new/ on
+# Builds the site (site/build.py) and publishes it to <DH_DIR>/new/ on
 # the host, over SSH. Started by hand only (Actions, "Publish the site",
 # Run workflow). It needs the secret DH_SSH_KEY and the variables DH_HOST,
-# DH_USER and DH_DIR_PRO (the same as atmos-lang/web).
+# DH_USER and DH_DIR (the folder of the site on the host).
 #
-# Only <DH_DIR_PRO>/new/ is touched, and inside it `ceu` is never
+# Only <DH_DIR>/new/ is touched, and inside it `ceu` is never
 # touched: the current site of Céu, a copy or a link (`ceu -> ../`); the
 # exclusion has no trailing slash, which would only match a directory and
 # let `--delete` remove the link. The publish stops if
@@ -34,9 +34,9 @@ jobs:
           DH_SSH_KEY: ${{ secrets.DH_SSH_KEY }}
           DH_HOST: ${{ vars.DH_HOST }}
           DH_USER: ${{ vars.DH_USER }}
-          DH_DIR: ${{ vars.DH_DIR_PRO }}
+          DH_DIR: ${{ vars.DH_DIR }}
         run: |
-          test -n "$DH_SSH_KEY" -a -n "$DH_HOST" -a -n "$DH_USER" -a -n "$DH_DIR" || { echo "DH_SSH_KEY, DH_HOST, DH_USER or DH_DIR_PRO is not set"; exit 1; }
+          test -n "$DH_SSH_KEY" -a -n "$DH_HOST" -a -n "$DH_USER" -a -n "$DH_DIR" || { echo "DH_SSH_KEY, DH_HOST, DH_USER or DH_DIR is not set"; exit 1; }
           mkdir -p ~/.ssh
           printf '%s\n' "$DH_SSH_KEY" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
