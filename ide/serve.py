@@ -12,7 +12,7 @@
 # A guide (../guides/<name>.md) is shown at /guide/<name>: its steps, each
 # with a text, a program and two exercises, beside the editor:
 #
-#   GET /g/<name>/info          its title, mode and number of steps (3 lines)
+#   GET /g/<name>/info          its mode, then the title of each step, one per line
 #   GET /g/<name>/<i>/text      the text of the step `i` (from 1), as HTML
 #   GET /g/<name>/<i>/code      its program
 #   POST /run?mode=..&guide=<name>      compiles with the files of the guide
@@ -184,6 +184,12 @@ def options ():
     return ''.join('<option value="%s">%s</option>' % (n, html.escape(guide(n)['title']))
                    for n in guides())
 
+# What the player needs to know of a guide: its mode, and the title of each
+# step (without its number, as `3.1.` of a section or `1.` of birds, which
+# the player replaces by that of the step).
+def info (g):
+    return '\n'.join([g['mode']] + [re.sub(r'^[\d.]+\s+', '', st['title']) for st in g['steps']])
+
 def build (args):
     p = subprocess.run([TOOL] + args, capture_output=True, text=True, timeout=300)
     err = '\n'.join(l for l in (p.stdout + p.stderr).splitlines()
@@ -216,7 +222,7 @@ class Handler (SimpleHTTPRequestHandler):
             if g is None:
                 return self.answer(404, 'no guide')
             if m.group(2) == 'info':
-                return self.answer(200, '%s\n%s\n%d' % (g['title'], g['mode'], len(g['steps'])))
+                return self.answer(200, info(g))
             i = int(m.group(3))
             if i < 1 or i > len(g['steps']):
                 return self.answer(404, 'no step')

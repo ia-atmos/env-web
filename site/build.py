@@ -6,7 +6,7 @@
 #   <outdir>/atmos/index.html            sends to github.com/ia-atmos/lang
 #   <outdir>/atmos/ide.{html,js,wasm}    the player (ide/ide.atm)
 #   <outdir>/atmos/guide/<name>/         the player for a guide
-#   <outdir>/atmos/g/<name>/info         its title, mode and number of steps
+#   <outdir>/atmos/g/<name>/info         its mode, and the title of each step
 #   <outdir>/atmos/g/<name>/<i>/{text,code}    a step
 #   <outdir>/atmos/g/<name>/<i>/main.html ...  its program, compiled
 #   <outdir>/atmos/run.cgi, guides.json  the compile server (site/run.cgi)
@@ -95,7 +95,7 @@ def main ():
         # for the compile server: what an edited program of the guide needs
         known[name] = { 'mode': g['mode'], 'base': g.get('base_spec'), 'preload': g['preload'] }
         n = len(g['steps'])
-        put(os.path.join(OUT, 'g', name, 'info'), '%s\n%s\n%d' % (g['title'], g['mode'], n))
+        put(os.path.join(OUT, 'g', name, 'info'), serve.info(g))
         put(os.path.join(OUT, 'guide', name, 'index.html'),
             page.replace('<head>', '<head><base href="../../"><link rel="icon" href="../imgs/atmos-icon.png">'
                                    '<meta id="guide" content="%s">'

@@ -23,6 +23,7 @@ const check = (name, got, exp) => {
     // atmos (text): step 1 runs as it is, and prints what its .out says
     await open('atmos');
     check('atmos: the steps', await p.locator('#step option').count(), 21);
+    check('atmos: a step as "1. Title"', (await p.locator('#step option').first().textContent()).startsWith('1. '), true);
     await p.click('#run');
     const fr = p.frameLocator('#runner');
     await fr.locator('#end').waitFor({ state: 'visible', timeout: 15000 });
@@ -58,6 +59,17 @@ const check = (name, got, exp) => {
     check('hello: two exercises', await p.locator('#text h3:has-text("Exercises") + ol > li').count(), 2);
     check('hello: the mode', await p.inputValue('#mode'), 'text');
     check('hello: the mode is fixed', await p.isDisabled('#mode'), true);
+    check('hello: the title of the window', await p.title(), 'Try Atmos');
+    check('hello: the steps as "1. Title"', await p.locator('#step option').allTextContents(), ['1. Ticks']);
+    // the columns are dragged by their borders
+    const w0 = (await p.locator('#text').boundingBox()).width;
+    const g = await p.locator('#grip-a').boundingBox();
+    await p.mouse.move(g.x + g.width/2, g.y + 100);
+    await p.mouse.down();
+    await p.mouse.move(g.x + g.width/2 + 120, g.y + 100, { steps: 5 });
+    await p.mouse.up();
+    const w1 = (await p.locator('#text').boundingBox()).width;
+    check('hello: the text column was widened by dragging', Math.abs(w1 - (w0 + 120)) < 4, true);
     check('hello: the logo goes to the landing', [new URL(await p.locator('#home').evaluate(a => a.href)).pathname, await p.locator('#home img').evaluate(i => i.naturalWidth > 0)], ['/', true]);
     check('hello: the guides, in order', await p.locator('#guides option').evaluateAll(os => os.map(o => o.value)), ['hello', 'birds', 'atmos']);
     await p.click('#run');
@@ -96,6 +108,7 @@ const check = (name, got, exp) => {
     // birds (pico): a canvas appears in the runner
     await open('birds');
     check('birds: the steps', await p.locator('#step option').count(), 11);
+    check('birds: no number twice', await p.locator('#step option').first().textContent(), '1. A task');
     await p.selectOption('#step', '3');
     await p.waitForFunction(() => document.getElementById('text').dataset.step === '3');
     await p.click('#run');

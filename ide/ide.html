@@ -1,9 +1,17 @@
 <!doctype html>
 <html>
-<head><meta charset="utf-8"><title>Atmos IDE</title>
+<head><meta charset="utf-8"><title>Try Atmos</title>
 <style>
-  body { margin: 0; font-family: sans-serif; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; height: 100vh; }
-  body.guide { grid-template-columns: 26em 1fr 1fr; }
+  /* the widths of the columns: --b is that of the code, --a that of the text of a guide (dragged by the grips) */
+  :root { --a: 26em; --b: 40vw; --bar: 38px; }
+  body { margin: 0; font-family: sans-serif; display: grid; grid-template-columns: var(--b) 1fr; grid-template-rows: auto 1fr; height: 100vh; }
+  body.guide { grid-template-columns: var(--a) var(--b) 1fr; }
+  .grip { position: fixed; top: var(--bar); bottom: 0; width: 9px; margin-left: -5px; cursor: col-resize; z-index: 5; touch-action: none; }
+  .grip:hover, .grip.on { background: rgba(6, 69, 173, .25); }
+  #grip-a { display: none; left: var(--a); }
+  body.guide #grip-a { display: block; }
+  #grip-b { left: var(--b); }
+  body.guide #grip-b { left: calc(var(--a) + var(--b)); }
   #text { display: none; padding: 0 12px; overflow: auto; border-right: 1px solid #ccc; font-size: 14px; line-height: 1.4; }
   body.guide #text { display: block; }
   #text code { background: #eee; padding: 0 2px; }
@@ -41,6 +49,8 @@
   <button id="run">Run</button>
   <button id="stop" title="Stop the program">Stop</button>
 </div>
+<div class="grip" id="grip-a" title="Drag to resize"></div>
+<div class="grip" id="grip-b" title="Drag to resize"></div>
 <div id="text"></div>
 <textarea id="code" spellcheck="false"></textarea>
 <div id="out">
@@ -93,6 +103,42 @@ spawn {
 
 await(:key.dn)
 </textarea>
+<script>
+// The columns are resized by dragging their borders (the grips): the
+// layout only, apart from the program of the page (ide.atm).
+(function () {
+    const root = document.documentElement;
+    const get = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+    const put = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+    for (const k of ['a', 'b']) {
+        const v = get('atmos-col-' + k);
+        if (v) { root.style.setProperty('--' + k, v); }
+    }
+    root.style.setProperty('--bar', document.getElementById('bar').offsetHeight + 'px');
+    const grip = (id, k) => {
+        const g = document.getElementById(id);
+        g.addEventListener('pointerdown', (e) => {
+            g.setPointerCapture(e.pointerId);
+            g.classList.add('on');
+            e.preventDefault();
+        });
+        g.addEventListener('pointermove', (e) => {
+            if (!g.classList.contains('on')) { return; }
+            // the left edge of the column, and the room that is left
+            const guide = document.body.classList.contains('guide');
+            const x0 = (k === 'a' || !guide) ? 0 : document.getElementById('text').getBoundingClientRect().right;
+            const w = Math.max(120, Math.min(e.clientX - x0, window.innerWidth - x0 - 120));
+            root.style.setProperty('--' + k, w + 'px');
+        });
+        g.addEventListener('pointerup', () => {
+            g.classList.remove('on');
+            put('atmos-col-' + k, getComputedStyle(root).getPropertyValue('--' + k).trim());
+        });
+    };
+    grip('grip-a', 'a');
+    grip('grip-b', 'b');
+})();
+</script>
 {{{ SCRIPT }}}
 </body>
 </html>

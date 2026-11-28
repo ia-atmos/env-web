@@ -27,15 +27,13 @@ task Samples () {
 }
 
 task Guide () {
-    val info = await web.fetch("g/" ++ guide ++ "/info")
-    val l1 = string.find(info.text, "\n")
-    val l2 = string.find(info.text, "\n", l1+1)
-    val n  = tonumber(string.sub(info.text, l2+1))
+    val info = string.split((await web.fetch("g/" ++ guide ++ "/info")).text, "\n")
+    val n = #info - 1                       ;; info@0 is the mode, then the titles
     web.set("guides", "value", guide)
-    web.set("mode",   "value", string.sub(info.text, l1+1, l2-1))
+    web.set("mode",   "value", info@0)
     web.set("mode",   "disabled", true)     ;; the mode is that of the guide
     loop i in (1,n) {
-        web.new(:option, [parent="step", value=tostring(i), text="step " ++ tostring(i)])
+        web.new(:option, [parent="step", value=tostring(i), text=i ++ ". " ++ info@(i)])
     }
     web.set("body", "class.guide", true)
 
