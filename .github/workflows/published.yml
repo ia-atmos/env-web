@@ -5,7 +5,8 @@
 # nor, in env-web, in its workflows, tests, README, Makefile and .gitignore). Its badge is on
 # the landing page.
 #
-# It runs after each publish, and once a day (for a push that was not
+# It waits for a publish in course to end before it compares. It runs after
+# each publish, and once a day (for a push that was not
 # published, and for the changes in lang and env-pico). Not at each push:
 # the site is published right after each change (plans, #48), so a check
 # at the push would only fail before the publish ends.
@@ -17,15 +18,31 @@ on:
   schedule:
     - cron: '17 9 * * *'
   workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
 jobs:
   published:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
+      - name: Wait for a publish in course
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # a publish that is queued or running will change what is published:
+          # judge only after it (two publishes in a row made this fail in between)
+          for i in $(seq 1 80); do
+              n=$(gh run list --workflow site.yml --json status \
+                  --jq '[.[] | select(.status=="in_progress" or .status=="queued")] | length')
+              [ "${n:-0}" = 0 ] && break
+              echo "a publish is in course ($n): waiting"
+              sleep 30
+          done
       - name: Compare the published site with main
         run: |
           for t in 1 2 3 4 5; do
