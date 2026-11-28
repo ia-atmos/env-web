@@ -11,6 +11,8 @@
 
 ```:prelude.c
 #include <stdio.h>
+#include <math.h>
+#include <stdint.h>
 #include <emscripten.h>
 
 #ifndef __EMSCRIPTEN__
@@ -48,8 +50,21 @@ EMSCRIPTEN_KEEPALIVE double clock_next (void) {
 }
 
 // `ms` elapsed: 1 if the program goes on.
+//
+// The time goes to the program in whole units of the clock, and what is
+// less than a unit is carried to the next time: the runtime counts its
+// timers down in floating point, and with fractions two timers that end
+// at the same instant (a `watching 5s` and the fifth `await 1s` inside
+// it) may end apart by a rounding, and in the wrong order.
 EMSCRIPTEN_KEEPALIVE int clock_time (double ms) {
-    AStatus st = atm_emit(a_num(ms * 1000 / A_CLOCK_US));
+    static double acc = 0;
+    acc += ms * 1000 / A_CLOCK_US;
+    int64_t n = (int64_t) floor(acc + 1e-6);    // 999999.9999 is 1000000
+    if (n <= 0) {
+        return 1;
+    }
+    acc -= (double) n;
+    AStatus st = atm_emit(a_int((AInt) n));
     if (st != A_OK) {
         clock_end(st);
         return 0;

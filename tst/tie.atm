@@ -1,0 +1,14 @@
+;; 200 ties: the 5th await of 10ms and a watching of 50ms end at the same
+;; instant; by the semantics the watching wins, and `i` never reaches 5
+var bad = 0
+loop in 200 {
+    watching 50ms {
+        loop i {
+            if i == 5 {
+                set bad = bad + 1
+            }
+            await 10ms
+        }
+    }
+}
+print("ties lost by the watching: " ++ bad)
