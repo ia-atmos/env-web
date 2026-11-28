@@ -20,6 +20,7 @@
   .ex pre { overflow: auto; margin: 0; padding: .8em; background: #f4f4f4; font-size: 15px; }
   .ex img { max-width: 100%; }
   .try  { display: inline-block; padding: .4em 1em; border: 1px solid #0645ad; border-radius: 4px; text-decoration: none; }
+  pre b { font-weight: bold; }
   code  { background: #f4f4f4; padding: 0 3px; }
   summary { cursor: pointer; font-size: 1.5em; font-weight: bold; margin: .8em 0; }
   h3    { font-size: 1em; margin-bottom: .2em; }
@@ -54,13 +55,13 @@
 <h2>This is what Atmos looks like:</h2>
 <div class="ex">
 <div class="code">
-<pre>watching 5s {
-    loop i {
-        print("Tick " ++ i)
-        await 1s
+<pre><b>watching</b> 5s {
+    <b>loop</b> i {
+        <b>print</b>("Tick " ++ i)
+        <b>await</b> 1s
     }
 }
-print "Bye!"</pre>
+<b>print</b> "Bye!"</pre>
 <p>During 5 seconds, counts endless ticks, one per second.</p>
 </div>
 <img src="imgs/atmos-hello.gif" alt="the program running: Tick 0 to Tick 4, one per second, then Bye!">
@@ -84,8 +85,8 @@ print "Bye!"</pre>
   <li>Developer: Francisco Sant'Anna (<a href="mailto:francisco@ime.uerj.br">francisco@ime.uerj.br</a>)</li>
 </ul>
 
-<details id="academic-papers">
-<summary>Academic papers</summary>
+<details id="research">
+<summary>Research</summary>
 <p>In bold, the main ones.</p>
 
 <h3>Journals</h3>
