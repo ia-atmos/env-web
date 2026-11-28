@@ -1,4 +1,4 @@
-@title Atmos: the first program
+@title Hello: your first program
 @mode text
 @base WEB:exs
 
@@ -26,9 +26,9 @@ along.
 
 ### Where to go next
 
-1. [Birds](guide/birds/): a small game, built in 11 steps, with
-   graphics. The fastest way to see the features of Atmos, one at a
-   time. **Recommended.**
-2. [A tour of Atmos](guide/atmos/): the guide of the language, one step
-   for each example of its documentation.
-3. The guide of pico, the graphics library of the tutorial (soon).
+1. [Birds](guide/birds/): playing with graphics, in 11 steps. The
+   fastest way to see the features of Atmos, one at a time.
+   **Recommended.**
+2. [Guide](guide/atmos/): a tour in the language, one step for each
+   example of its documentation.
+3. Rocks: a full game (soon).

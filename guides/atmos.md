@@ -1,4 +1,4 @@
-@title A tour of Atmos
+@title Guide: a tour in the language
 @mode text
 @source ATMOS:doc/guide.md
 @base ATMOS:tst/guide

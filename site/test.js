@@ -58,7 +58,7 @@ const check = (name, got, exp) => {
     check('hello: one step', await p.locator('#step option').count(), 1);
     check('hello: two exercises', await p.locator('#text h3:has-text("Exercises") + ol > li').count(), 2);
     check('hello: the mode', await p.inputValue('#mode'), 'text');
-    check('hello: the mode is fixed', await p.isDisabled('#mode'), true);
+    check('hello: the mode is not shown in a guide', await p.isHidden('#mode'), true);
     check('hello: the title of the window', await p.title(), 'Try Atmos');
     check('hello: the steps as "1. Title"', await p.locator('#step option').allTextContents(), ['1. Ticks']);
     // the columns are dragged by their borders

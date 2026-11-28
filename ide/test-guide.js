@@ -38,7 +38,7 @@ const open = async (b, name, title, mode, n) => {
     const b = await chromium.launch();
 
     // birds (pico)
-    let p = await open(b, 'birds', 'Birds: a tutorial of Atmos with pico', 'pico', 11);
+    let p = await open(b, 'birds', 'Birds: playing with graphics', 'pico', 11);
     await step(p, 1);
     check('birds: step 1', [await p.textContent('#text h2'), (await p.inputValue('#code')).includes('spawn Bird(0.33, 0.15)')], ['1. A task', true]);
     await p.click('#next');
@@ -58,7 +58,7 @@ const open = async (b, name, title, mode, n) => {
     await p.close();
 
     // atmos (text): the output of a step is the one that its text shows
-    p = await open(b, 'atmos', 'A tour of Atmos', 'text', 21);
+    p = await open(b, 'atmos', 'Guide: a tour in the language', 'text', 21);
     for (const i of [3, 13, 17]) {
         await step(p, i);
         const exp = await p.textContent('#text h3:has-text("Output") + pre');

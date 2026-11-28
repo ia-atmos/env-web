@@ -1,4 +1,4 @@
-@title Birds: a tutorial of Atmos with pico
+@title Birds: playing with graphics
 @mode pico
 @base PICO:exs/birds
 @preload res
